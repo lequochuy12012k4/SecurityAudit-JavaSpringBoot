@@ -31,7 +31,7 @@ public class AsyncAuditConsumer {
     private String streamKey;
 
     // Chạy ngầm định kỳ mỗi 5 giây
-    // @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 5000)
     public void consumeAuditLogs() {
         try {
             // Đọc tất cả các bản ghi từ Redis Stream
