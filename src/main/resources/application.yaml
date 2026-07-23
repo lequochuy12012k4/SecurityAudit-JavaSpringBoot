@@ -1,0 +1,45 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /javasecurityaudit
+
+spring:
+  application:
+    name: am_islms_core
+
+  # Cấu hình MySQL Database
+  datasource:
+    url: jdbc:mysql://localhost:3306/java-security-audit
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Cấu hình JPA & Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        # Cấu hình suffix cho các bảng Audit do Hibernate Envers tạo ra
+        org.hibernate.envers.audit_table_suffix: _aud
+
+  # Cấu hình Redis Connection
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: "" # Nếu Redis trên máy không đặt password thì để trống
+      timeout: 3000ms
+
+# Cấu hình Custom Properties cho Security JWT & Audit Stream
+jwt:
+  secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970 # Secret key mã hóa Base64 256-bit
+  expiration-ms: 86400000 # Thời hạn Access Token: 24h
+  refresh-expiration-ms: 604800000 # Thời hạn Refresh Token: 7 ngày
+
+audit:
+  redis-stream-key: "audit:activity:stream"
+  redis-group-name: "audit-consumer-group"
