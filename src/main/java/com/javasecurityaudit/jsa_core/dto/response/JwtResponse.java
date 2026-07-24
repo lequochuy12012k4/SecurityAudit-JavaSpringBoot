@@ -9,9 +9,8 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JwtResponse {
-
     String accessToken;
-
+    String refreshToken;
     @Builder.Default
     String tokenType = "Bearer";
 }

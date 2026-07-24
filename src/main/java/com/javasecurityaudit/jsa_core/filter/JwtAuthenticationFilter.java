@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,6 +21,7 @@ import com.javasecurityaudit.jsa_core.service.TokenBlackListService;
 import com.javasecurityaudit.jsa_core.util.JwtTokenProvider;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -45,13 +47,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // 3. Đọc Username từ Token
                 String username = tokenProvider.getUsernameFromJWT(jwt);
-
+                List<GrantedAuthority> authorities = tokenProvider.getAuthoritiesFromJWT(jwt);
                 // 4. Load UserDetails từ Database
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
+                
                 // 5. Thiết lập Authentication vào SecurityContext
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
                 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);

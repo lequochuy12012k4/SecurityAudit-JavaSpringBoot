@@ -15,6 +15,9 @@ public enum ErrorCode {
     INVALID_KEY(1005, "Mã lỗi không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_CREDENTIALS(1006, "Tên đăng nhập hoặc mật khẩu không chính xác", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED(1007, "Email đã được sử dụng", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(1008, "Mật khẩu không chính xác", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_EXISTED(1009, "Vai trò không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
+    CANNOT_DELETE_YOURSELF(1010, "Bạn không thể xóa chính mình", HttpStatus.BAD_REQUEST)
     ;
 
     private final int code;

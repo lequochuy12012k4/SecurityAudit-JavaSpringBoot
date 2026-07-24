@@ -13,14 +13,14 @@ import java.util.concurrent.TimeUnit;
 public class TokenBlackListServiceImpl implements TokenBlackListService {
 
     private final StringRedisTemplate redisTemplate;
-    private final JwtTokenProvider tokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     private static final String BLACKLIST_PREFIX = "jwt:blacklist:";
 
     @Override
     public void blacklistToken(String token) {
-        String jti = tokenProvider.getJtiFromJWT(token);
-        long remainingMs = tokenProvider.getRemainingExpirationMs(token);
+        String jti =jwtTokenProvider.getJtiFromJWT(token);
+        long remainingMs = jwtTokenProvider.getRemainingExpirationMs(token);
 
         if (remainingMs > 0) {
             redisTemplate.opsForValue().set(
@@ -35,7 +35,7 @@ public class TokenBlackListServiceImpl implements TokenBlackListService {
     @Override
     public boolean isBlacklisted(String token) {
         try {
-            String jti = tokenProvider.getJtiFromJWT(token);
+            String jti = jwtTokenProvider.getJtiFromJWT(token);
             return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + jti));
         } catch (Exception e) {
             return false;

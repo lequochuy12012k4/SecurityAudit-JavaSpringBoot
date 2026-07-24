@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.javasecurityaudit.jsa_core.entity.User;
 import com.javasecurityaudit.jsa_core.repository.UserRepository;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,9 +25,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        var authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toSet());
+        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(
+                        role.getName().startsWith("ROLE_") ? role.getName() : "ROLE_" + role.getName()
+                ))
+                .collect(Collectors.toList());
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),

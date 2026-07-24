@@ -20,5 +20,6 @@ public class UserResponse extends AuditResponse {
     String email;
     String fullName;
     boolean enabled;
+    boolean accountNonLocked;
     Set<String> roles;
 }

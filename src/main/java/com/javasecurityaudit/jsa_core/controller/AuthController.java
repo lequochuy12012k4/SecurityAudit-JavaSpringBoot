@@ -3,9 +3,12 @@ package com.javasecurityaudit.jsa_core.controller;
 import com.javasecurityaudit.jsa_core.base.response.BaseResponse;
 import com.javasecurityaudit.jsa_core.config.annotation.LogActivity;
 import com.javasecurityaudit.jsa_core.dto.request.LoginRequest;
+import com.javasecurityaudit.jsa_core.dto.request.RefreshTokenRequest;
 import com.javasecurityaudit.jsa_core.dto.response.JwtResponse;
 import com.javasecurityaudit.jsa_core.enums.AuditAction;
 import com.javasecurityaudit.jsa_core.service.AuthService;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,5 +34,10 @@ public class AuthController {
         return BaseResponse.<String>builder()
                 .result("Logout successfully!")
                 .build();
+    }
+
+    @PostMapping("/refresh-token")
+    public BaseResponse<JwtResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        return BaseResponse.success(authService.refreshToken(request));
     }
 }
