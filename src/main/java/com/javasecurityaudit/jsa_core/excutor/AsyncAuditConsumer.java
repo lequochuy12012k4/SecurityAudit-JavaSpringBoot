@@ -33,7 +33,6 @@ public class AsyncAuditConsumer {
     @Value("${audit.redis-stream-key:audit:activity:stream}")
     private String streamKey;
 
-    // Chạy ngầm định kỳ mỗi 5 giây
     @Scheduled(fixedDelay = 2000)
     public void consumeAuditLogs() {
         try {

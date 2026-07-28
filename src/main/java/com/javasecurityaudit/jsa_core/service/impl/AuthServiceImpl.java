@@ -8,6 +8,7 @@ import com.javasecurityaudit.jsa_core.exception.AppException;
 import com.javasecurityaudit.jsa_core.exception.ErrorCode;
 import com.javasecurityaudit.jsa_core.repository.UserRepository;
 import com.javasecurityaudit.jsa_core.service.AuthService;
+import com.javasecurityaudit.jsa_core.service.LoginAttemptService;
 import com.javasecurityaudit.jsa_core.service.RefreshTokenService;
 import com.javasecurityaudit.jsa_core.service.TokenBlackListService;
 import com.javasecurityaudit.jsa_core.util.JwtTokenProvider;
@@ -18,6 +19,7 @@ import lombok.experimental.FieldDefaults;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -38,25 +40,38 @@ public class AuthServiceImpl implements AuthService {
     StringRedisTemplate redisTemplate;
     RefreshTokenService refreshTokenService;
     TokenBlackListService tokenBlackListService;
+    LoginAttemptService loginAttemptService;
 
     @Override
     public JwtResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        String username = request.getUsername();
+        if (loginAttemptService.isBlocked(username)) {
+            throw new AppException(ErrorCode.TOO_MANY_LOGIN_ATTEMPTS);
+        }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            // 2. Tiến hành xác thực
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, request.getPassword()));
 
-        String accessToken = jwtTokenProvider.generateAccessToken(authentication);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication.getName());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            loginAttemptService.loginSucceeded(username);
 
-        // Save refresh token to database
-        long refreshExpiryMs = jwtTokenProvider.getRefreshExpirationMs();
-        refreshTokenService.saveRefreshToken(refreshToken, authentication.getName(), refreshExpiryMs);
+            String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+            String refreshToken = jwtTokenProvider.generateRefreshToken(authentication.getName());
 
-        return JwtResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+            long refreshExpiryMs = jwtTokenProvider.getRefreshExpirationMs();
+            refreshTokenService.saveRefreshToken(refreshToken, authentication.getName(), refreshExpiryMs);
+
+            return JwtResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+
+        } catch (BadCredentialsException e) {
+            loginAttemptService.loginFailed(username);
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+        }
     }
 
     @Override

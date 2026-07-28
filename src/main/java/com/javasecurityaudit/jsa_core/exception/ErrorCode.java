@@ -21,7 +21,10 @@ public enum ErrorCode {
     EMAIL_EXISTED(1007, "Email đã được sử dụng", HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD(1008, "Mật khẩu không chính xác", HttpStatus.BAD_REQUEST),
     ROLE_NOT_EXISTED(1009, "Vai trò không tồn tại trong hệ thống", HttpStatus.NOT_FOUND),
-    CANNOT_DELETE_YOURSELF(1010, "Bạn không thể xóa chính mình", HttpStatus.BAD_REQUEST)
+    CANNOT_DELETE_YOURSELF(1010, "Bạn không thể xóa chính mình", HttpStatus.BAD_REQUEST),
+    ACCOUNT_DISABLED(1011,"Tài khoản chưa được kích hoạt hoặc đã bị vô hiệu hóa", HttpStatus.FORBIDDEN),
+    ACCOUNT_LOCKED(1012,"Tài khoản đã bị khóa", HttpStatus.FORBIDDEN),
+    TOO_MANY_LOGIN_ATTEMPTS(1013, "Bạn đã vượt quá số lần đăng nhập cho phép. Vui lòng thử lại sau!", HttpStatus.FORBIDDEN),
     ;
 
     int code;

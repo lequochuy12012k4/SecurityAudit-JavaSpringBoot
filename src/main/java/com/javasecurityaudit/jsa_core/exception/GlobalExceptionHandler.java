@@ -7,12 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.javasecurityaudit.jsa_core.base.response.BaseResponse;
 
+import java.time.Instant;
 import java.util.Objects;
 
 @Slf4j
@@ -80,13 +82,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = DisabledException.class)
     public ResponseEntity<BaseResponse<Object>> handlingDisabledException(DisabledException exception) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error(1008, "Tài khoản chưa được kích hoạt hoặc đã bị vô hiệu hóa!"));
+        ErrorCode errorCode = ErrorCode.ACCOUNT_DISABLED;
+
+        BaseResponse<Object> apiResponse = BaseResponse.builder()
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build();
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
     @ExceptionHandler(value = LockedException.class)
     public ResponseEntity<BaseResponse<Object>> handlingLockedException(LockedException exception) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error(1009, "Tài khoản của bạn đã bị khóa!"));
+        ErrorCode errorCode = ErrorCode.ACCOUNT_LOCKED;
+        BaseResponse<Object> apiResponse = BaseResponse.builder()
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build();
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
+    
+
 }
