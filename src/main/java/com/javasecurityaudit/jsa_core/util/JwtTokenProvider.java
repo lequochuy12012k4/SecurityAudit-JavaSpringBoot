@@ -128,7 +128,8 @@ public class JwtTokenProvider {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
             Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
-            if (expiration == null) return 0;
+            if (expiration == null)
+                return 0;
 
             long diff = expiration.getTime() - System.currentTimeMillis();
             return Math.max(diff, 0);
@@ -138,12 +139,16 @@ public class JwtTokenProvider {
         }
     }
 
+    public long getRefreshExpirationMs() {
+        return refreshExpirationMs;
+    }
+
     // 6. Lấy Danh sách Authorities từ Token
     public List<GrantedAuthority> getAuthoritiesFromJWT(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
             String scope = signedJWT.getJWTClaimsSet().getStringClaim("scope");
-            
+
             if (!StringUtils.hasText(scope)) {
                 return Collections.emptyList();
             }

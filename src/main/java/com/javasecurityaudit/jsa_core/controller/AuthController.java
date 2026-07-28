@@ -26,11 +26,13 @@ public class AuthController {
                 .result(authService.login(request))
                 .build();
     }
-    
+
     @PostMapping("/logout")
     @LogActivity(action = AuditAction.USER_LOGOUT, description = "Người dùng đăng xuất khỏi hệ thống")
-    public BaseResponse<String> logout(@RequestHeader("Authorization") String token) {
-        authService.logout(token);
+    public BaseResponse<String> logout(@RequestHeader("Authorization") String authHeader,
+            @RequestBody(required = false) RefreshTokenRequest request) {
+        String refreshToken = request != null ? request.getRefreshToken() : null;
+        authService.logout(authHeader, refreshToken);
         return BaseResponse.<String>builder()
                 .result("Logout successfully!")
                 .build();
