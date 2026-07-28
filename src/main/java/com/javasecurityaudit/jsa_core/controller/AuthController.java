@@ -9,15 +9,19 @@ import com.javasecurityaudit.jsa_core.enums.AuditAction;
 import com.javasecurityaudit.jsa_core.service.AuthService;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthController {
 
-    private final AuthService authService;
+    AuthService authService;
 
     @PostMapping("/login")
     @LogActivity(action = AuditAction.USER_LOGIN, description = "Người dùng đăng nhập vào hệ thống")

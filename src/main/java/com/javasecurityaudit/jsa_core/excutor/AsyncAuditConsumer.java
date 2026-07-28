@@ -3,7 +3,10 @@ package com.javasecurityaudit.jsa_core.excutor;
 import com.javasecurityaudit.jsa_core.entity.UserActivityLog;
 import com.javasecurityaudit.jsa_core.enums.AuditAction;
 import com.javasecurityaudit.jsa_core.repository.UserActivityLogRepository;
+
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.MapRecord;

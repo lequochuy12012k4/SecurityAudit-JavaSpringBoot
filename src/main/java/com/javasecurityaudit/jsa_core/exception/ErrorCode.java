@@ -1,11 +1,15 @@
 package com.javasecurityaudit.jsa_core.exception;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
+
 import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Lỗi hệ thống không xác định", HttpStatus.INTERNAL_SERVER_ERROR),
     USER_EXISTED(1001, "Người dùng đã tồn tại trong hệ thống", HttpStatus.BAD_REQUEST),
@@ -20,7 +24,7 @@ public enum ErrorCode {
     CANNOT_DELETE_YOURSELF(1010, "Bạn không thể xóa chính mình", HttpStatus.BAD_REQUEST)
     ;
 
-    private final int code;
-    private final String message;
-    private final HttpStatus statusCode;
+    int code;
+    String message;
+    HttpStatus statusCode;
 }

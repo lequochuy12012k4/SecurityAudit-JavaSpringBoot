@@ -11,7 +11,11 @@ import com.javasecurityaudit.jsa_core.service.AuthService;
 import com.javasecurityaudit.jsa_core.service.RefreshTokenService;
 import com.javasecurityaudit.jsa_core.service.TokenBlackListService;
 import com.javasecurityaudit.jsa_core.util.JwtTokenProvider;
+
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,14 +29,15 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthServiceImpl implements AuthService {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
-    private final StringRedisTemplate redisTemplate;
-    private final RefreshTokenService refreshTokenService;
-    private final TokenBlackListService tokenBlackListService;
+    AuthenticationManager authenticationManager;
+    JwtTokenProvider jwtTokenProvider;
+    UserRepository userRepository;
+    StringRedisTemplate redisTemplate;
+    RefreshTokenService refreshTokenService;
+    TokenBlackListService tokenBlackListService;
 
     @Override
     public JwtResponse login(LoginRequest request) {

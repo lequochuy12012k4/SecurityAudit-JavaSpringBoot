@@ -5,6 +5,9 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -20,16 +23,17 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class JwtTokenProvider {
 
     @Value("${jwt.secret-key}")
-    private String jwtSecret;
+    String jwtSecret;
 
     @Value("${jwt.expiration-ms}")
-    private long jwtExpirationMs;
+    long jwtExpirationMs;
 
     @Value("${jwt.refresh-expiration-ms}")
-    private long refreshExpirationMs; // 👈 Thêm thời hạn Refresh Token trong application.properties
+    long refreshExpirationMs; // 👈 Thêm thời hạn Refresh Token trong application.properties
 
     // 1. Sinh Access Token (15 phút)
     public String generateAccessToken(Authentication authentication) {

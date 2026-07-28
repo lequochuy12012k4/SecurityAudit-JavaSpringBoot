@@ -1,5 +1,8 @@
 package com.javasecurityaudit.jsa_core.service.impl;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +13,11 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TokenBlackListServiceImpl implements TokenBlackListService {
 
-    private final StringRedisTemplate redisTemplate;
-    private final JwtTokenProvider jwtTokenProvider;
+    StringRedisTemplate redisTemplate;
+    JwtTokenProvider jwtTokenProvider;
 
     private static final String BLACKLIST_PREFIX = "jwt:blacklist:";
 

@@ -3,7 +3,9 @@ package com.javasecurityaudit.jsa_core.config.security;
 import com.javasecurityaudit.jsa_core.filter.JwtAuthenticationFilter;
 import com.javasecurityaudit.jsa_core.service.CustomUserDetailsService;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
@@ -32,10 +34,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private static final String[] PUBLIC_ENDPOINTS={
+    JwtAuthenticationFilter jwtAuthFilter;
+    String[] PUBLIC_ENDPOINTS={
         "/api/v1/auth/login",
         "/api/v1/auth/logout",
         "/api/v1/auth/refresh-token",
@@ -43,7 +46,7 @@ public class SecurityConfig {
         "/api/v1/users/my-info",
         "/api/v1/users/update-my-info"
     };
-    private static final String[] FRONTEND_URL={
+    String[] FRONTEND_URL={
         "http://localhost:3000"
     };
     @Bean

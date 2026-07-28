@@ -5,7 +5,11 @@ import com.javasecurityaudit.jsa_core.entity.User;
 import com.javasecurityaudit.jsa_core.repository.RefreshTokenRepository;
 import com.javasecurityaudit.jsa_core.repository.UserRepository;
 import com.javasecurityaudit.jsa_core.service.RefreshTokenService;
+
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,10 +18,11 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
+    RefreshTokenRepository refreshTokenRepository;
+    UserRepository userRepository;
 
     @Override
     @Transactional

@@ -1,6 +1,8 @@
 package com.javasecurityaudit.jsa_core.service.impl;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,12 +32,13 @@ import com.javasecurityaudit.jsa_core.service.UserService;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
+    UserRepository userRepository;
+    RoleRepository roleRepository;
+    PasswordEncoder passwordEncoder;
+    UserMapper userMapper;
 
     @Override
     @Transactional
