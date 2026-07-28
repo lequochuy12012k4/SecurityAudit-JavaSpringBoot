@@ -16,6 +16,7 @@ import com.javasecurityaudit.jsa_core.dto.request.AdminUpdateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.request.ChangePasswordRequest;
 import com.javasecurityaudit.jsa_core.dto.request.CreateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateMyInfoRequest;
+import com.javasecurityaudit.jsa_core.dto.request.UpdateUserStatusRequest;
 import com.javasecurityaudit.jsa_core.dto.response.UserResponse;
 import com.javasecurityaudit.jsa_core.entity.Role;
 import com.javasecurityaudit.jsa_core.entity.User;
@@ -164,5 +165,22 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return userMapper.toUserResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateUserStatus(String userId, UpdateUserStatusRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (request.getEnabled() != null) {
+            user.setEnabled(request.getEnabled());
+        }
+
+        if (request.getAccountNonLocked() != null) {
+            user.setAccountNonLocked(request.getAccountNonLocked());
+        }
+
+        return userMapper.toUserResponse(userRepository.save(user));
     }
 }

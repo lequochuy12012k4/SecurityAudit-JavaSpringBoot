@@ -30,6 +30,7 @@ public class UserController {
     // ================= DÀNH CHO CẢ USER VÀ ADMIN =================
     @GetMapping("/my-info")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @LogActivity(action = AuditAction.USER_GET_MY_INFO, description = "Người dùng tự xem thông tin cá nhân")
     public BaseResponse<UserResponse> getMyInfo() {
         return BaseResponse.success(userService.getMyInfo());
     }
@@ -53,13 +54,14 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @LogActivity(action = AuditAction.ADMIN_GET_USERS, description = "Admin xem danh sách người dùng")
     public BaseResponse<List<UserResponse>> getAllUsers() {
         return BaseResponse.success(userService.getAllUsers());
     }
 
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @LogActivity(action = AuditAction.USER_UPDATE, description = "Admin cập nhật thông tin chi tiết người dùng")
+    @LogActivity(action = AuditAction.ADMIN_UPDATE_USER, description = "Admin cập nhật thông tin chi tiết người dùng")
     public BaseResponse<UserResponse> adminUpdateUser(
             @PathVariable String userId,
             @RequestBody AdminUpdateUserRequest request) {
@@ -68,9 +70,19 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @LogActivity(action = AuditAction.USER_DELETE, description = "Admin xóa người dùng")
+    @LogActivity(action = AuditAction.ADMIN_DELETE_USER, description = "Admin xóa người dùng")
     public BaseResponse<String> deleteUser(@PathVariable String userId) {
         userService.deleteUser(userId);
         return BaseResponse.success("Xóa người dùng thành công!");
+    }
+
+    @PatchMapping("/{userId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    @LogActivity(action = AuditAction.ADMIN_UPDATE_STATUS_USER, description = "Admin thay đổi trạng thái tài khoản")
+    public BaseResponse<UserResponse> updateUserStatus(
+            @PathVariable String userId,
+            @RequestBody UpdateUserStatusRequest request
+    ) {
+        return BaseResponse.success(userService.updateUserStatus(userId, request));
     }
 }

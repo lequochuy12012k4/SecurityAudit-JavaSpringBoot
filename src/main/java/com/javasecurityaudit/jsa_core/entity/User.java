@@ -34,10 +34,10 @@ public class User extends BaseAuditTrail {
     String fullName;
 
     @Builder.Default
-    boolean enabled = true;
+    Boolean enabled = true;
 
     @Builder.Default
-    boolean accountNonLocked = true;
+    Boolean accountNonLocked = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

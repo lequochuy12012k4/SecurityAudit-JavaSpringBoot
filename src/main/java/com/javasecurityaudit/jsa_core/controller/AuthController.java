@@ -37,6 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
+    @LogActivity(action = AuditAction.USER_REFRESH_TOKEN, description = "Người dùng làm mới token")
     public BaseResponse<JwtResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         return BaseResponse.success(authService.refreshToken(request));
     }

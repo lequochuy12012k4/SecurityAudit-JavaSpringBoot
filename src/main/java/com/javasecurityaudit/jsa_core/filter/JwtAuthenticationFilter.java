@@ -50,7 +50,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 List<GrantedAuthority> authorities = tokenProvider.getAuthoritiesFromJWT(jwt);
                 // 4. Load UserDetails từ Database
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                
+                if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
+                    log.warn("Tài khoản {} đã bị khóa hoặc vô hiệu hóa!", username);
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
                 // 5. Thiết lập Authentication vào SecurityContext
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, authorities);

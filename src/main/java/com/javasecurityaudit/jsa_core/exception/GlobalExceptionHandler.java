@@ -1,8 +1,12 @@
 package com.javasecurityaudit.jsa_core.exception;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -72,5 +76,17 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.badRequest().body(apiResponse);
+    }
+
+    @ExceptionHandler(value = DisabledException.class)
+    public ResponseEntity<BaseResponse<Object>> handlingDisabledException(DisabledException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(BaseResponse.error(1008, "Tài khoản chưa được kích hoạt hoặc đã bị vô hiệu hóa!"));
+    }
+
+    @ExceptionHandler(value = LockedException.class)
+    public ResponseEntity<BaseResponse<Object>> handlingLockedException(LockedException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(BaseResponse.error(1009, "Tài khoản của bạn đã bị khóa!"));
     }
 }

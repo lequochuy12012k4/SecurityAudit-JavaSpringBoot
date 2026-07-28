@@ -6,6 +6,7 @@ import com.javasecurityaudit.jsa_core.dto.request.AdminUpdateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.request.ChangePasswordRequest;
 import com.javasecurityaudit.jsa_core.dto.request.CreateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateMyInfoRequest;
+import com.javasecurityaudit.jsa_core.dto.request.UpdateUserStatusRequest;
 import com.javasecurityaudit.jsa_core.dto.response.UserResponse;
 
 public interface UserService {
@@ -19,4 +20,5 @@ public interface UserService {
     UserResponse adminUpdateUser(String userId, AdminUpdateUserRequest request);
 
     void deleteUser(String userId);
+    UserResponse updateUserStatus(String userId, UpdateUserStatusRequest request);
 }
