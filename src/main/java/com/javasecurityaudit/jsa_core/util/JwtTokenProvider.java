@@ -41,6 +41,7 @@ public class JwtTokenProvider {
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(userPrincipal.getUsername())
+                .issuer("JavaSecurityAudit")
                 .issueTime(now)
                 .expirationTime(expiryDate)
                 .jwtID(UUID.randomUUID().toString())
@@ -57,6 +58,7 @@ public class JwtTokenProvider {
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(username)
+                .issuer("JavaSecurityAudit")
                 .issueTime(now)
                 .expirationTime(expiryDate)
                 .jwtID(UUID.randomUUID().toString())
