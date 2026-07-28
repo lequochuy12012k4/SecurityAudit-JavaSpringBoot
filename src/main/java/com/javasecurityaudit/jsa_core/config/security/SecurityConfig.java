@@ -1,8 +1,6 @@
 package com.javasecurityaudit.jsa_core.config.security;
 
 import com.javasecurityaudit.jsa_core.filter.JwtAuthenticationFilter;
-import com.javasecurityaudit.jsa_core.service.CustomUserDetailsService;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
