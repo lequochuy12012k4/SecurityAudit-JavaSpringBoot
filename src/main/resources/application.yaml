@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
     context-path: /javasecurityaudit
 
@@ -9,9 +9,9 @@ spring:
 
   # Cấu hình MySQL Database
   datasource:
-    url: jdbc:mysql://localhost:3306/java-security-audit
-    username: root
-    password: root
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # Cấu hình JPA & Hibernate
@@ -23,23 +23,27 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
-        # Cấu hình suffix cho các bảng Audit do Hibernate Envers tạo ra
         org.hibernate.envers.audit_table_suffix: _aud
 
   # Cấu hình Redis Connection
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: "" # Nếu Redis trên máy không đặt password thì để trống
+      host: ${DATA_REDIS_HOST}
+      port: ${DATA_REDIS_PORT}
+      password: ${DATA_REDIS_PASSWORD}
       timeout: 3000ms
 
 # Cấu hình Custom Properties cho Security JWT & Audit Stream
 jwt:
-  secret-key: 1b8bffe79cadc70af899308075ffb1e37df44698058b9e98c612a7463043b25a # Secret key mã hóa Base64 256-bit
-  access-expiration-ms: 60000 # Thời hạn Access Token: 1 phút
-  refresh-expiration-ms: 604800000 # Thời hạn Refresh Token: 7 ngày
+  secret-key: ${JWT_SECRET_KEY}
+  access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS}
+  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS}
 
 audit:
-  redis-stream-key: "audit:activity:stream"
-  redis-group-name: "audit-consumer-group"
+  redis-stream-key: ${AUDIT_REDIS_STREAM_KEY}
+  redis-group-name: ${AUDIT_REDIS_GROUP_NAME}
+
+login:
+  attempt-max: ${LOGIN_ATTEMPT_MAX}
+  block-time-minutes: ${LOGIN_BLOCK_TIME_MINUTES}
+  attempt-window-minutes: ${LOGIN_ATTEMPT_WINDOW_MINUTES}

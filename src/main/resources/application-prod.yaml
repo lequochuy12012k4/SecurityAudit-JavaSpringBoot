@@ -1,49 +1,4 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /javasecurityaudit
-
-spring:
-  application:
-    name: am_islms_core
-
-  # Cấu hình MySQL Database
-  datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  # Cấu hình JPA & Hibernate
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
-        org.hibernate.envers.audit_table_suffix: _aud
-
-  # Cấu hình Redis Connection
-  data:
-    redis:
-      host: ${DATA_REDIS_HOST}
-      port: ${DATA_REDIS_PORT}
-      password: ${DATA_REDIS_PASSWORD}
-      timeout: 3000ms
-
-# Cấu hình Custom Properties cho Security JWT & Audit Stream
 jwt:
   secret-key: ${JWT_SECRET_KEY}
   access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS} # Thời hạn Access Token: 1 phút
   refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS} # Thời hạn Refresh Token: 7 ngày
-
-audit:
-  redis-stream-key: ${AUDIT_REDIS_STREAM_KEY}
-  redis-group-name: ${AUDIT_REDIS_GROUP_NAME}
-
-login:
-  attempt-max: ${LOGIN_ATTEMPT_MAX}  # Số lần đăng nhập thất bại tối đa trước khi khóa tài khoản
-  block-time-minutes: ${LOGIN_BLOCK_TIME_MINUTES}  # Thời gian khóa tài khoản (tính bằng phút) sau khi vượt quá số lần đăng nhập thất bại
-  attempt-window-minutes: ${LOGIN_ATTEMPT_WINDOW_MINUTES}  # Thời gian tính số lần đăng nhập thất bại (tính bằng phút) trước khi reset lại số lần đăng nhập thất bại
