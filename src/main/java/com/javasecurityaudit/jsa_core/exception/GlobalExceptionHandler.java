@@ -1,102 +1,143 @@
 package com.javasecurityaudit.jsa_core.exception;
 
+import com.javasecurityaudit.jsa_core.dto.response.ApiErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.javasecurityaudit.jsa_core.base.response.BaseResponse;
-
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Slf4j
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Bắt tất cả ngoại lệ chưa được phân loại (Uncaught Exceptions)
-    @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<BaseResponse<Object>> handlingRuntimeException(Exception exception) {
-        log.error("Unhandled Exception: ", exception);
-        
-        BaseResponse<Object> apiResponse = BaseResponse.builder()
-                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
-                .message(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
-                .build();
-
-        return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode()).body(apiResponse);
-    }
-
-    // 2. Bắt Custom Business Exception (AppException)
-    @ExceptionHandler(value = AppException.class)
-    public ResponseEntity<BaseResponse<Object>> handlingAppException(AppException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-
-        BaseResponse<Object> apiResponse = BaseResponse.builder()
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
-                .build();
-
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
-    }
-
-    // 3. Bắt lỗi Phân quyền (Access Denied - 403 Forbidden)
-    @ExceptionHandler(value = AccessDeniedException.class)
-    public ResponseEntity<BaseResponse<Object>> handlingAccessDeniedException(AccessDeniedException exception) {
-        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
-
-        BaseResponse<Object> apiResponse = BaseResponse.builder()
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
-                .build();
-
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
-    }
-
-    // 4. Bắt lỗi Validation dữ liệu đầu vào (@Valid trong Request Body)
+    // 1. Bắt lỗi Validation dữ liệu đầu vào (@Valid trong Request Body)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public ResponseEntity<BaseResponse<Object>> handlingValidation(MethodArgumentNotValidException exception) {
-        String enumKey = Objects.requireNonNull(exception.getFieldError()).getDefaultMessage();
+    public ResponseEntity<ApiErrorResponse> handlingValidation(
+            MethodArgumentNotValidException exception, 
+            HttpServletRequest request) {
 
-        ErrorCode errorCode = ErrorCode.INVALID_KEY;
+        String messageOrKey = Objects.requireNonNull(exception.getFieldError()).getDefaultMessage();
+        String finalMessage = messageOrKey;
+        int errorCodeValue = 1001; // Mã lỗi mặc định cho Invalid Input (hoặc tùy chỉnh theo ErrorCode của bạn)
+
         try {
-            errorCode = ErrorCode.valueOf(enumKey);
+            ErrorCode errorCode = ErrorCode.valueOf(messageOrKey);
+            finalMessage = errorCode.getMessage();
+            errorCodeValue = errorCode.getCode();
         } catch (IllegalArgumentException e) {
-            // Nếu message truyền vào annotation validation là text bình thường thay vì enum key
+            // Giữ nguyên message thuần nếu không phải Enum key
         }
 
-        BaseResponse<Object> apiResponse = BaseResponse.builder()
-                .code(errorCode.getCode())
-                .message(Objects.nonNull(errorCode) ? errorCode.getMessage() : enumKey)
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .code(errorCodeValue) // Gắn mã code
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(finalMessage)
+                .path(request.getRequestURI())
                 .build();
 
-        return ResponseEntity.badRequest().body(apiResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    // 2. Bắt tất cả ngoại lệ chưa được phân loại (Uncaught Exceptions - Status 500)
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<ApiErrorResponse> handlingRuntimeException(
+            Exception exception, 
+            HttpServletRequest request) {
+
+        log.error("Unhandled Exception: ", exception);
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode()) // Gắn mã code từ ErrorCode
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    // 3. Bắt Custom Business Exception (AppException)
+    @ExceptionHandler(value = AppException.class)
+    public ResponseEntity<ApiErrorResponse> handlingAppException(
+            AppException exception, 
+            HttpServletRequest request) {
+
+        ErrorCode errorCode = exception.getErrorCode();
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(errorCode.getStatusCode().value())
+                .code(errorCode.getCode()) // Gắn mã code từ ErrorCode
+                .error(errorCode.getStatusCode().getReasonPhrase())
+                .message(errorCode.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(errorResponse);
+    }
+
+    // 4. Bắt lỗi Phân quyền (Access Denied - 403 Forbidden)
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handlingAccessDeniedException(
+            AccessDeniedException exception, 
+            HttpServletRequest request) {
+
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .code(ErrorCode.UNAUTHORIZED.getCode()) // Hoặc tạo ErrorCode riêng cho Forbidden
+                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                .message(ErrorCode.UNAUTHORIZED.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(value = DisabledException.class)
-    public ResponseEntity<BaseResponse<Object>> handlingDisabledException(DisabledException exception) {
-        ErrorCode errorCode = ErrorCode.ACCOUNT_DISABLED;
+    public ResponseEntity<ApiErrorResponse> handlingDisabledException(
+            DisabledException exception, 
+            HttpServletRequest request) {
 
-        BaseResponse<Object> apiResponse = BaseResponse.builder()
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .code(ErrorCode.ACCOUNT_DISABLED.getCode())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message(ErrorCode.ACCOUNT_DISABLED.getMessage())
+                .path(request.getRequestURI())
                 .build();
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
     @ExceptionHandler(value = LockedException.class)
-    public ResponseEntity<BaseResponse<Object>> handlingLockedException(LockedException exception) {
-        ErrorCode errorCode = ErrorCode.ACCOUNT_LOCKED;
-        BaseResponse<Object> apiResponse = BaseResponse.builder()
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
-                .build();
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
-    }
-    
+    public ResponseEntity<ApiErrorResponse> handlingLockedException(
+            LockedException exception, 
+            HttpServletRequest request) {
 
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .code(ErrorCode.ACCOUNT_LOCKED.getCode())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message(ErrorCode.ACCOUNT_LOCKED.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
 }

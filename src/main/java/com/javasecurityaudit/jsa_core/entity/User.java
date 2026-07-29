@@ -1,5 +1,7 @@
 package com.javasecurityaudit.jsa_core.entity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -22,13 +24,13 @@ public class User extends BaseAuditTrail {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true)
     String username;
 
     @Column(nullable = false)
     String password;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, unique = true)
     String email;
 
     String fullName;

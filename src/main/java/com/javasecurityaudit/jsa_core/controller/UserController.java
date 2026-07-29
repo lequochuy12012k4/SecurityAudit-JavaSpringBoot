@@ -54,9 +54,16 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @LogActivity(action = AuditAction.ADMIN_GET_USERS, description = "Admin xem danh sách người dùng")
+    @LogActivity(action = AuditAction.ADMIN_GET_ALL_USERS, description = "Admin xem danh sách người dùng")
     public BaseResponse<List<UserResponse>> getAllUsers() {
         return BaseResponse.success(userService.getAllUsers());
+    }
+
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @LogActivity(action = AuditAction.ADMIN_GET_USER, description = "Admin xem thông tin người dùng")
+    public BaseResponse<UserResponse> getUser(@PathVariable String userId) {
+        return BaseResponse.success(userService.getUser(userId));
     }
 
     @PutMapping("/{userId}")

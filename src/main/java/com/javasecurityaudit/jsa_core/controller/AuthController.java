@@ -25,7 +25,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @LogActivity(action = AuditAction.USER_LOGIN, description = "Người dùng đăng nhập vào hệ thống")
-    public BaseResponse<JwtResponse> login(@RequestBody LoginRequest request) {
+    public BaseResponse<JwtResponse> login(@RequestBody @Valid LoginRequest request) {
         return BaseResponse.<JwtResponse>builder()
                 .result(authService.login(request))
                 .build();
