@@ -1,6 +1,12 @@
 package com.javasecurityaudit.jsa_core.dto.request;
 
+import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckLowerPasswordConstraint;
+import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckNumericPasswordConstraint;
+import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckSpecialPasswordConstraint;
+import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckUpperPasswordConstraint;
+
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,10 +16,16 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateMyInfoRequest {
+    @NotBlank(message = "Họ tên không được để trống")
     String fullName;
 
     @Email(message = "Email không đúng định dạng")
     String email;
 
+    @NotBlank(message = "Mật khẩu cũ không được để trống")
+    @CheckUpperPasswordConstraint
+    @CheckLowerPasswordConstraint
+    @CheckNumericPasswordConstraint
+    @CheckSpecialPasswordConstraint
     String password;
 }

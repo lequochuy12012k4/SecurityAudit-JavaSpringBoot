@@ -37,7 +37,7 @@ spring:
 # Cấu hình Custom Properties cho Security JWT & Audit Stream
 jwt:
   secret-key: 1b8bffe79cadc70af899308075ffb1e37df44698058b9e98c612a7463043b25a # Secret key mã hóa Base64 256-bit
-  expiration-ms: 60000 # Thời hạn Access Token: 1 phút
+  access-expiration-ms: 60000 # Thời hạn Access Token: 1 phút
   refresh-expiration-ms: 604800000 # Thời hạn Refresh Token: 7 ngày
 
 audit:

@@ -4,6 +4,8 @@ import com.javasecurityaudit.jsa_core.service.LoginAttemptService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,8 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
 
     StringRedisTemplate redisTemplate;
 
-    static int MAX_ATTEMPTS = 5;            // Tối đa 5 lần thử sai
+    // @Value("${login.attempt-max}")
+    static int MAX_ATTEMPTS=5 ;            // Tối đa 5 lần thử sai
     static long BLOCK_TIME_MINUTES = 15;     // Khóa 15 phút nếu vượt ngưỡng
     static long ATTEMPT_WINDOW_MINUTES = 5;  // Đếm số lần sai trong vòng 5 phút
 
