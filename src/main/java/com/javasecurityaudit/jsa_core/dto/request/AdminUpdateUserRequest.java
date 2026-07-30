@@ -37,5 +37,5 @@ public class AdminUpdateUserRequest {
     
     Boolean enabled;
     Boolean accountNonLocked;
-    Set<String> roles; // Danh sách vai trò mới, VD: ["ROLE_ADMIN", "ROLE_USER"]
+    Set<String> roles;
 }

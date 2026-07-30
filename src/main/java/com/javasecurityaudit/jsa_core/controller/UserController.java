@@ -27,7 +27,7 @@ public class UserController {
         return BaseResponse.success(userService.createUser(request));
     }
 
-    // ================= DÀNH CHO CẢ USER VÀ ADMIN =================
+
     @GetMapping("/my-info")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @LogActivity(action = AuditAction.USER_GET_MY_INFO, description = "Người dùng tự xem thông tin cá nhân")
@@ -50,7 +50,6 @@ public class UserController {
         return BaseResponse.success("Đổi mật khẩu thành công!");
     }
 
-    // ================= CHỈ DÀNH CHO ADMIN =================
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

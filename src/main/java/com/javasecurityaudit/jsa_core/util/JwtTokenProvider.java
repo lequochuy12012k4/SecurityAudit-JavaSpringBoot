@@ -33,9 +33,8 @@ public class JwtTokenProvider {
     long jwtExpirationMs;
 
     @Value("${jwt.refresh-expiration-ms}")
-    long refreshExpirationMs; // 👈 Thêm thời hạn Refresh Token trong application.properties
+    long refreshExpirationMs;
 
-    // 1. Sinh Access Token (15 phút)
     public String generateAccessToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
         Date now = new Date();
@@ -55,7 +54,6 @@ public class JwtTokenProvider {
         return signJWT(claimsSet);
     }
 
-    // 2. Sinh Refresh Token (Tạo JWT Refresh Token sống 7 ngày)
     public String generateRefreshToken(String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshExpirationMs);
@@ -66,13 +64,12 @@ public class JwtTokenProvider {
                 .issueTime(now)
                 .expirationTime(expiryDate)
                 .jwtID(UUID.randomUUID().toString())
-                .claim("type", "REFRESH") // Đánh dấu đây là Refresh Token
+                .claim("type", "REFRESH")
                 .build();
 
         return signJWT(claimsSet);
     }
 
-    // Helper ký JWT
     private String signJWT(JWTClaimsSet claimsSet) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
         SignedJWT signedJWT = new SignedJWT(header, claimsSet);
@@ -86,7 +83,6 @@ public class JwtTokenProvider {
         }
     }
 
-    // 3. Validate Token tổng quát
     public boolean validateToken(String authToken) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(authToken);
@@ -110,7 +106,6 @@ public class JwtTokenProvider {
         return false;
     }
 
-    // 4. Lấy Username từ Token
     public String getUsernameFromJWT(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
@@ -120,7 +115,6 @@ public class JwtTokenProvider {
         }
     }
 
-    // 5. Lấy JTI từ Token (Phục vụ Redis Blacklist)
     public String getJtiFromJWT(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
@@ -149,7 +143,6 @@ public class JwtTokenProvider {
         return refreshExpirationMs;
     }
 
-    // 6. Lấy Danh sách Authorities từ Token
     public List<GrantedAuthority> getAuthoritiesFromJWT(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);

@@ -34,7 +34,6 @@ public class ApplicationInitConfig {
         log.info("Initializing application data...");
         return args -> {
 
-            // 1. Kiểm tra hoặc khởi tạo ROLE_ADMIN trong bảng roles trước
             Role adminRole = roleRepository.findByName(RoleType.ROLE_ADMIN.name())
                     .orElseGet(() -> roleRepository.save(
                             Role.builder()
@@ -42,18 +41,16 @@ public class ApplicationInitConfig {
                                     .description("Quản trị viên hệ thống")
                                     .build()
                     ));
-
-            // 2. Kiểm tra nếu chưa có tài khoản admin thì tạo mới và gán adminRole
             if (userRepository.findByUsername("admin").isEmpty()) {
                 Set<Role> roles = new HashSet<>();
-                roles.add(adminRole); // 👈 Thêm đối tượng Role vào Set<Role>
+                roles.add(adminRole);
 
                 User user = User.builder()
                         .username("admin")
                         .password(passwordEncoder.encode("admin"))
                         .email("admin@gmail.com")
                         .fullName("Admin")
-                        .roles(roles) // 👈 Gán đúng Set<Role>
+                        .roles(roles)
                         .enabled(true)
                         .accountNonLocked(true)
                         .build();

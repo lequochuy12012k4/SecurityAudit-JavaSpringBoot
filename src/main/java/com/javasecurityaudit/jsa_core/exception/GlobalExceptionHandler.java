@@ -19,7 +19,6 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Bắt lỗi Validation dữ liệu đầu vào (@Valid trong Request Body)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handlingValidation(
             MethodArgumentNotValidException exception, 
@@ -27,20 +26,20 @@ public class GlobalExceptionHandler {
 
         String messageOrKey = Objects.requireNonNull(exception.getFieldError()).getDefaultMessage();
         String finalMessage = messageOrKey;
-        int errorCodeValue = 1001; // Mã lỗi mặc định cho Invalid Input (hoặc tùy chỉnh theo ErrorCode của bạn)
+        int errorCodeValue = 1001;
 
         try {
             ErrorCode errorCode = ErrorCode.valueOf(messageOrKey);
             finalMessage = errorCode.getMessage();
             errorCodeValue = errorCode.getCode();
         } catch (IllegalArgumentException e) {
-            // Giữ nguyên message thuần nếu không phải Enum key
+            
         }
 
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
-                .code(errorCodeValue) // Gắn mã code
+                .code(errorCodeValue) 
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(finalMessage)
                 .path(request.getRequestURI())
@@ -49,7 +48,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-    // 2. Bắt tất cả ngoại lệ chưa được phân loại (Uncaught Exceptions - Status 500)
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ApiErrorResponse> handlingRuntimeException(
             Exception exception, 
@@ -60,7 +58,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode()) // Gắn mã code từ ErrorCode
+                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode()) 
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
                 .path(request.getRequestURI())

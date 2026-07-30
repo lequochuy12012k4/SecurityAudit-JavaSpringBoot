@@ -20,10 +20,10 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
 
     @Value("${login.attempt-max}")
     static int MAX_ATTEMPTS; 
-    @Value("${login.block-time-minutes}")           // Tối đa 5 lần thử sai
+    @Value("${login.block-time-minutes}")       
     static long BLOCK_TIME_MINUTES;  
-    @Value("${login.attempt-window-minutes}")   // Khóa 15 phút nếu vượt ngưỡng
-    static long ATTEMPT_WINDOW_MINUTES;  // Đếm số lần sai trong vòng 5 phút
+    @Value("${login.attempt-window-minutes}") 
+    static long ATTEMPT_WINDOW_MINUTES; 
 
     private String getAttemptKey(String username) {
         return "login:attempt:" + username;
@@ -44,14 +44,13 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
         Long attempts = redisTemplate.opsForValue().increment(attemptKey);
 
         if (attempts != null && attempts == 1) {
-            // Đặt thời gian tự xóa key đếm sau 5 phút
             redisTemplate.expire(attemptKey, ATTEMPT_WINDOW_MINUTES, TimeUnit.MINUTES);
         }
 
         if (attempts != null && attempts >= MAX_ATTEMPTS) {
-            // Đạt ngưỡng 5 lần -> Tạm khóa username 15 phút
+
             redisTemplate.opsForValue().set(getBlockKey(username), "blocked", BLOCK_TIME_MINUTES, TimeUnit.MINUTES);
-            redisTemplate.delete(attemptKey); // Xóa key đếm
+            redisTemplate.delete(attemptKey);
         }
     }
 

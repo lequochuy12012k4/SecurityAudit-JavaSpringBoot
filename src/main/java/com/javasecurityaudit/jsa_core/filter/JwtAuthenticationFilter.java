@@ -40,25 +40,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
-            // 1. Rút Bearer Token từ Header Authorization
             String jwt = getJwtFromRequest(request);
 
-            // 2. Validate Token: Kiểm tra format + Chữ ký + Hạn dùng + Check Redis Blacklist
             if (StringUtils.hasText(jwt) 
                     && tokenProvider.validateToken(jwt) 
                     && !tokenBlacklistService.isBlacklisted(jwt)) {
 
-                // 3. Đọc Username từ Token
                 String username = tokenProvider.getUsernameFromJWT(jwt);
                 List<GrantedAuthority> authorities = tokenProvider.getAuthoritiesFromJWT(jwt);
-                // 4. Load UserDetails từ Database
+      
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
                     log.warn("Tài khoản {} đã bị khóa hoặc vô hiệu hóa!", username);
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     return;
                 }
-                // 5. Thiết lập Authentication vào SecurityContext
+     
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
                 
@@ -69,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.error("Không thể thiết lập thông tin xác thực vào Security Context: {}", ex.getMessage());
         }
 
-        // Chuyển tiếp Request sang Filter tiếp theo trong Filter Chain
+
         filterChain.doFilter(request, response);
     }
 

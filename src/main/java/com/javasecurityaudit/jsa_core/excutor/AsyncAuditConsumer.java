@@ -34,7 +34,6 @@ public class AsyncAuditConsumer {
     @Scheduled(fixedDelay = 2000)
     public void consumeAuditLogs() {
         try {
-            // Đọc tất cả các bản ghi từ Redis Stream
             List<MapRecord<String, Object, Object>> records = redisTemplate.opsForStream()
                     .read(StreamOffset.fromStart(streamKey));
 
@@ -61,10 +60,8 @@ public class AsyncAuditConsumer {
                 recordIdsToDelete.add(record.getId().getValue());
             }
 
-            // Batch insert toàn bộ xuống MySQL
             activityLogRepository.saveAll(logEntities);
 
-            // Xóa các record đã lưu khỏi Redis Stream để dọn dẹp bộ nhớ
             redisTemplate.opsForStream().delete(streamKey, recordIdsToDelete.toArray(new String[0]));
             log.info("Đã lưu async thành công {} bản ghi Activity Log từ Redis Stream xuống Database.", logEntities.size());
 

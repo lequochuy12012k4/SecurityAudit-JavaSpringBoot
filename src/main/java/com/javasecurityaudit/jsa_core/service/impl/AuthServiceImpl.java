@@ -36,7 +36,6 @@ public class AuthServiceImpl implements AuthService {
     AuthenticationManager authenticationManager;
     JwtTokenProvider jwtTokenProvider;
     UserRepository userRepository;
-    StringRedisTemplate redisTemplate;
     RefreshTokenService refreshTokenService;
     TokenBlackListService tokenBlackListService;
     LoginAttemptService loginAttemptService;
@@ -49,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         try {
-            // 2. Tiến hành xác thực
+
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, request.getPassword()));
 
@@ -81,7 +80,6 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        // Check if refresh token is revoked in database
         if (refreshTokenService.isRevoked(refreshToken)) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
@@ -105,7 +103,6 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(username);
 
-        // Revoke old refresh token and save new one
         refreshTokenService.revokeRefreshToken(refreshToken);
         long refreshExpiryMs = jwtTokenProvider.getRefreshExpirationMs();
         refreshTokenService.saveRefreshToken(newRefreshToken, username, refreshExpiryMs);
@@ -118,13 +115,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(String authHeader, String refreshToken) {
-        // Blacklist access token in Redis
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String accessToken = authHeader.substring(7);
             tokenBlackListService.blacklistToken(accessToken);
         }
 
-        // Revoke refresh token in database
         if (refreshToken != null && !refreshToken.isBlank()) {
             refreshTokenService.revokeRefreshToken(refreshToken);
         }

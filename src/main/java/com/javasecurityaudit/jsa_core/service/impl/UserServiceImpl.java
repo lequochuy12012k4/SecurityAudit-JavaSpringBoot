@@ -100,7 +100,6 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        // Kiểm tra mật khẩu cũ
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.INVALID_PASSWORD); // Kiểm tra lại enum ErrorCode của bạn
         }
@@ -129,18 +128,15 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        // Cập nhật các thông tin nếu truyền lên (Tuyệt đối không có setter cho username)
         if (request.getFullName() != null) user.setFullName(request.getFullName());
         if (request.getEmail() != null) user.setEmail(request.getEmail());
         if (request.getEnabled() != null) user.setEnabled(request.getEnabled());
         if (request.getAccountNonLocked() != null) user.setAccountNonLocked(request.getAccountNonLocked());
 
-        // Nếu Admin truyền mật khẩu mới -> Mã hóa và lưu
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        // Cập nhật danh sách Roles mới
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             Set<Role> roles = request.getRoles().stream()
                     .map(roleName -> roleRepository.findByName(roleName)
