@@ -41,7 +41,7 @@ src/main/java/com/javasecurityaudit/jsa_core/
 
 ### Prerequisites
 
-- Java 17 or higher
+- Java 26
 - Maven 3.6+
 - MySQL or H2 database (for development)
 - Redis server (for token blacklisting)
