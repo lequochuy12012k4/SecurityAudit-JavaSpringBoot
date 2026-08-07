@@ -11,9 +11,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginRequest {
 
-    @NotBlank(message = "Username không được để trống")
+    @NotBlank(message = "validation.username.required")
     String username;
 
-    @NotBlank(message = "Password không được để trống")
+    @NotBlank(message = "validation.password.required")
     String password;
 }

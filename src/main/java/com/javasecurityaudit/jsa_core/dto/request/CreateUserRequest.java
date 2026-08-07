@@ -18,18 +18,18 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateUserRequest {
 
-    @Size(min = 4, max = 10, message = "Username phải từ 4 đến 10 ký tự")
+    @Size(min = 4, max = 10, message = "validation.username.size")
     String username;
-    
-    @NotBlank(message = "Mật khẩu cũ không được để trống")
-    @Size(min = 6, message = "Password phải từ 6 ký tự trở lên")
+
+    @NotBlank(message = "validation.password.required")
+    @Size(min = 6, message = "validation.password.min.length")
     @CheckUpperPasswordConstraint
     @CheckLowerPasswordConstraint
     @CheckNumericPasswordConstraint
     @CheckSpecialPasswordConstraint
     String password;
 
-    @Email(message = "Email không đúng định dạng")
+    @Email(message = "validation.email")
     String email;
 
     String fullName;

@@ -16,13 +16,13 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateMyInfoRequest {
-    @NotBlank(message = "Họ tên không được để trống")
+    @NotBlank(message = "validation.fullname.required")
     String fullName;
 
-    @Email(message = "Email không đúng định dạng")
+    @Email(message = "validation.email")
     String email;
 
-    @NotBlank(message = "Mật khẩu cũ không được để trống")
+    @NotBlank(message = "validation.password.required")
     @CheckUpperPasswordConstraint
     @CheckLowerPasswordConstraint
     @CheckNumericPasswordConstraint

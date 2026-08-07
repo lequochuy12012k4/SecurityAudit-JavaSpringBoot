@@ -8,6 +8,8 @@ import com.javasecurityaudit.jsa_core.enums.AuditAction;
 import com.javasecurityaudit.jsa_core.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,14 +21,17 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final MessageSource messageSource;
 
-    
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+    }
+
     @PostMapping("/create")
     @LogActivity(action = AuditAction.USER_CREATE, description = "Tạo tài khoản người dùng mới")
     public BaseResponse<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        return BaseResponse.success(userService.createUser(request));
+        return BaseResponse.success(getMessage("success.user.created"), userService.createUser(request));
     }
-
 
     @GetMapping("/my-info")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
@@ -39,7 +44,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @LogActivity(action = AuditAction.USER_UPDATE, description = "Người dùng tự cập nhật thông tin cá nhân")
     public BaseResponse<UserResponse> updateMyInfo(@Valid @RequestBody UpdateMyInfoRequest request) {
-        return BaseResponse.success(userService.updateMyInfo(request));
+        return BaseResponse.success(getMessage("success.user.updated"), userService.updateMyInfo(request));
     }
 
     @PutMapping("/change-password")
@@ -47,9 +52,8 @@ public class UserController {
     @LogActivity(action = AuditAction.USER_UPDATE, description = "Người dùng tự đổi mật khẩu")
     public BaseResponse<String> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(request);
-        return BaseResponse.success("Đổi mật khẩu thành công!");
+        return BaseResponse.success(getMessage("success.password.changed"));
     }
-
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -71,7 +75,7 @@ public class UserController {
     public BaseResponse<UserResponse> adminUpdateUser(
             @PathVariable String userId,
             @RequestBody AdminUpdateUserRequest request) {
-        return BaseResponse.success(userService.adminUpdateUser(userId, request));
+        return BaseResponse.success(getMessage("success.user.updated"), userService.adminUpdateUser(userId, request));
     }
 
     @DeleteMapping("/{userId}")
@@ -79,7 +83,7 @@ public class UserController {
     @LogActivity(action = AuditAction.ADMIN_DELETE_USER, description = "Admin xóa người dùng")
     public BaseResponse<String> deleteUser(@PathVariable String userId) {
         userService.deleteUser(userId);
-        return BaseResponse.success("Xóa người dùng thành công!");
+        return BaseResponse.success(getMessage("success.user.deleted"));
     }
 
     @PatchMapping("/{userId}/status")
@@ -87,8 +91,8 @@ public class UserController {
     @LogActivity(action = AuditAction.ADMIN_UPDATE_STATUS_USER, description = "Admin thay đổi trạng thái tài khoản")
     public BaseResponse<UserResponse> updateUserStatus(
             @PathVariable String userId,
-            @RequestBody UpdateUserStatusRequest request
-    ) {
-        return BaseResponse.success(userService.updateUserStatus(userId, request));
+            @RequestBody UpdateUserStatusRequest request) {
+        return BaseResponse.success(getMessage("success.status.updated"),
+                userService.updateUserStatus(userId, request));
     }
 }

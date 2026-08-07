@@ -12,7 +12,8 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,12 +23,18 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     AuthService authService;
+    MessageSource messageSource;
+
+    private String getMessage(String key) {
+        return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+    }
 
     @PostMapping("/login")
     @LogActivity(action = AuditAction.USER_LOGIN, description = "Người dùng đăng nhập vào hệ thống")
     public BaseResponse<JwtResponse> login(@RequestBody @Valid LoginRequest request) {
         return BaseResponse.<JwtResponse>builder()
                 .result(authService.login(request))
+                .message(getMessage("success.login"))
                 .build();
     }
 
@@ -38,13 +45,14 @@ public class AuthController {
         String refreshToken = request != null ? request.getRefreshToken() : null;
         authService.logout(authHeader, refreshToken);
         return BaseResponse.<String>builder()
-                .result("Logout successfully!")
+                .result(getMessage("success.logout"))
+                .message(getMessage("success.logout"))
                 .build();
     }
 
     @PostMapping("/refresh-token")
     @LogActivity(action = AuditAction.USER_REFRESH_TOKEN, description = "Người dùng làm mới token")
     public BaseResponse<JwtResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        return BaseResponse.success(authService.refreshToken(request));
+        return BaseResponse.success(getMessage("success.refresh.token"), authService.refreshToken(request));
     }
 }

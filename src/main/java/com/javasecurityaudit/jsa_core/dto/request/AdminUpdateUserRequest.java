@@ -20,21 +20,21 @@ import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckUpperPas
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AdminUpdateUserRequest {
 
-    @NotBlank(message = "Họ tên không được để trống")
+    @NotBlank(message = "validation.fullname.required")
     String fullName;
 
-    @NotBlank(message = "Email mới không được để trống")
-    @Email(message = "Email không đúng định dạng")
+    @NotBlank(message = "validation.email.required")
+    @Email(message = "validation.email")
     String email;
 
-    @NotBlank(message = "Mật khẩu mới không được để trống")
-    @Size(min = 6, message = "Mật khẩu tối thiểu phải từ 6 ký tự trở lên")
+    @NotBlank(message = "validation.password.required")
+    @Size(min = 6, message = "validation.password.min.length")
     @CheckUpperPasswordConstraint
     @CheckLowerPasswordConstraint
     @CheckNumericPasswordConstraint
     @CheckSpecialPasswordConstraint
     String password;
-    
+
     Boolean enabled;
     Boolean accountNonLocked;
     Set<String> roles;
