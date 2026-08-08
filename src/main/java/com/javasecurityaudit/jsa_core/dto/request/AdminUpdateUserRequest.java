@@ -20,14 +20,11 @@ import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckUpperPas
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AdminUpdateUserRequest {
 
-    @NotBlank(message = "validation.fullname.required")
     String fullName;
 
-    @NotBlank(message = "validation.email.required")
     @Email(message = "validation.email")
     String email;
 
-    @NotBlank(message = "validation.password.required")
     @Size(min = 6, message = "validation.password.min.length")
     @CheckUpperPasswordConstraint
     @CheckLowerPasswordConstraint

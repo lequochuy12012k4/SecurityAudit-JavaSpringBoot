@@ -11,7 +11,7 @@ public class CheckSpecialPasswordValidator implements ConstraintValidator<CheckS
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (Objects.isNull(password) || password.isEmpty()) {
-            return false;
+            return true;
         }
         return password.matches(".*[^a-zA-Z0-9].*");
     }

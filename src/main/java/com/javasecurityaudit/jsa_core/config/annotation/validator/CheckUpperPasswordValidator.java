@@ -11,8 +11,9 @@ public class CheckUpperPasswordValidator implements ConstraintValidator<CheckUpp
 
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
+        // Allow null or empty password (means user doesn't want to update password)
         if (Objects.isNull(password) || password.isEmpty()) {
-            return false;
+            return true;
         }
         for (char c : password.toCharArray()) {
             if (Character.isUpperCase(c)) {

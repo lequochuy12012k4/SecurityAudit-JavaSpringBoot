@@ -11,7 +11,7 @@ public class CheckNumericPasswordValidator implements ConstraintValidator<CheckN
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (Objects.isNull(password) || password.isEmpty()) {
-            return false;
+            return true;
         }
         for (char c : password.toCharArray()) {
             if (Character.isDigit(c)) {

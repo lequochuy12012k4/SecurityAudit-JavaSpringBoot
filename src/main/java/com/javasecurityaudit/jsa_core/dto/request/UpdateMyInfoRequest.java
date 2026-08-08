@@ -16,13 +16,10 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateMyInfoRequest {
-    @NotBlank(message = "validation.fullname.required")
     String fullName;
 
-    @Email(message = "validation.email")
     String email;
 
-    @NotBlank(message = "validation.password.required")
     @CheckUpperPasswordConstraint
     @CheckLowerPasswordConstraint
     @CheckNumericPasswordConstraint
