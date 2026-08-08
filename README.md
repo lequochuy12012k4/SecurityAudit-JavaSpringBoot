@@ -12,6 +12,7 @@ A Java Spring Boot application for JWT-based authentication and authorization wi
 - Password encoding with BCrypt
 - Input validation with Hibernate Validator
 - Global exception handling
+- **Internationalization (i18n) support** - English and Vietnamese
 - API documentation with Swagger/OpenAPI (if configured)
 
 ## Project Structure
@@ -34,7 +35,20 @@ src/main/java/com/javasecurityaudit/jsa_core/
     ├── aspect/          # AOP aspects
     ├── audit/           # Audit configuration
     ├── redis/           # Redis configuration
-    └── security/        # Security configuration
+    ├── security/        # Security configuration
+    └── I18nConfig.java  # Internationalization configuration
+```
+
+### Resource Files
+
+```
+src/main/resources/
+├── application.properties          # Main configuration
+├── application-dev.properties      # Development profile
+├── application-prod.properties     # Production profile
+├── application-redis.properties    # Redis configuration
+├── messages.properties             # English messages (default)
+└── messages_vi.properties          # Vietnamese messages
 ```
 
 ## Getting Started
@@ -68,6 +82,26 @@ The application uses Spring Boot's external configuration. Key configuration fil
 - `application-dev.properties` - Development profile
 - `application-prod.properties` - Production profile
 - `application-redis.properties` - Redis configuration
+
+### Internationalization (i18n)
+
+The application supports multiple languages through Spring's `MessageSource`:
+
+- **Supported languages**: English (default) and Vietnamese
+- **Message files**: 
+  - `src/main/resources/messages.properties` - English (default)
+  - `src/main/resources/messages_vi.properties` - Vietnamese
+- **Locale resolution**: Via `Accept-Language` header or `?lang=` query parameter
+- **Usage**: Use `?lang=en` or `?lang=vi` in API requests, or set `Accept-Language` header
+
+Example:
+```bash
+# Get Vietnamese messages
+curl -H "Accept-Language: vi" http://localhost:8080/api/v1/auth/login
+
+# Or using query parameter
+curl "http://localhost:8080/api/v1/auth/login?lang=vi"
+```
 
 ### API Endpoints
 
