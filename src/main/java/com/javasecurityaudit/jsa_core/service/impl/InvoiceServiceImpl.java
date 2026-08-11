@@ -30,24 +30,44 @@ public class InvoiceServiceImpl implements InvoiceService {
     InvoiceMapper invoiceMapper;
 
     private static final String INVOICE_CREATE_LOCK_PREFIX = "invoice:create:lock:";
+    private static final String INVOICE_CREATE_ATTEMPT_PREFIX = "invoice:create:attempts:";
+    private static final String INVOICE_CREATE_BLOCK_PREFIX = "invoice:create:block:";
     private static final long CREATE_LOCK_TTL_SECONDS = 5;
+    private static final long CREATE_RATE_LIMIT_WINDOW_SECONDS = 60;
+    private static final long CREATE_RATE_LIMIT_BLOCK_SECONDS = 60;
+    private static final long CREATE_RATE_LIMIT_MAX_ATTEMPTS = 5;
 
     @Override
     @Transactional
     public InvoiceResponse createInvoice(CreateInvoiceRequest request) {
         String normalizedCode = request.getInvoiceCode() != null ? request.getInvoiceCode().trim() : "";
-        String lockKey = buildLockKey(normalizedCode);
+        if (normalizedCode.isBlank()) {
+            throw new AppException(ErrorCode.INVOICE_ALREADY_EXISTS);
+        }
 
+        String blockKey = buildBlockKey(normalizedCode);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(blockKey))) {
+            throw new AppException(ErrorCode.INVOICE_CREATION_RATE_LIMITED);
+        }
+
+        String attemptKey = buildAttemptKey(normalizedCode);
+        Long attempts = redisTemplate.opsForValue().increment(attemptKey);
+        if (attempts != null && attempts == 1) {
+            redisTemplate.expire(attemptKey, CREATE_RATE_LIMIT_WINDOW_SECONDS, TimeUnit.SECONDS);
+        }
+        if (attempts != null && attempts > CREATE_RATE_LIMIT_MAX_ATTEMPTS) {
+            redisTemplate.opsForValue().set(blockKey, "1", CREATE_RATE_LIMIT_BLOCK_SECONDS, TimeUnit.SECONDS);
+            redisTemplate.delete(attemptKey);
+            throw new AppException(ErrorCode.INVOICE_CREATION_RATE_LIMITED);
+        }
+
+        String lockKey = buildLockKey(normalizedCode);
         Boolean acquired = redisTemplate.opsForValue().setIfAbsent(lockKey, "1", CREATE_LOCK_TTL_SECONDS, TimeUnit.SECONDS);
         if (Boolean.FALSE.equals(acquired)) {
             throw new AppException(ErrorCode.INVOICE_CREATION_RATE_LIMITED);
         }
 
         try {
-            if (normalizedCode.isBlank()) {
-                throw new AppException(ErrorCode.INVOICE_ALREADY_EXISTS);
-            }
-
             if (invoiceRepository.existsByInvoiceCode(normalizedCode)) {
                 throw new AppException(ErrorCode.INVOICE_ALREADY_EXISTS);
             }
@@ -59,6 +79,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             invoice.setStatus("CREATED");
 
             Invoice saved = invoiceRepository.save(invoice);
+            redisTemplate.delete(attemptKey);
             return invoiceMapper.toInvoiceResponse(saved);
         } catch (DataIntegrityViolationException ex) {
             throw new AppException(ErrorCode.INVOICE_ALREADY_EXISTS);
@@ -101,6 +122,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private String buildLockKey(String invoiceCode) {
         return INVOICE_CREATE_LOCK_PREFIX + invoiceCode;
+    }
+
+    private String buildAttemptKey(String invoiceCode) {
+        return INVOICE_CREATE_ATTEMPT_PREFIX + invoiceCode;
+    }
+
+    private String buildBlockKey(String invoiceCode) {
+        return INVOICE_CREATE_BLOCK_PREFIX + invoiceCode;
     }
 
 }
