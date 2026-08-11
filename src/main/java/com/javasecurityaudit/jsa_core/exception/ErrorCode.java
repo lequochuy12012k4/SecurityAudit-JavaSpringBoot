@@ -25,6 +25,9 @@ public enum ErrorCode {
     ACCOUNT_DISABLED(1011, "error.account.disabled", HttpStatus.FORBIDDEN),
     ACCOUNT_LOCKED(1012, "error.account.locked", HttpStatus.FORBIDDEN),
     TOO_MANY_LOGIN_ATTEMPTS(1013, "error.too.many.login.attempts", HttpStatus.FORBIDDEN),
+    INVOICE_ALREADY_EXISTS(1014, "error.invoice.already.exists", HttpStatus.BAD_REQUEST),
+    INVOICE_CREATION_RATE_LIMITED(1015, "error.invoice.creation.rate.limited", HttpStatus.TOO_MANY_REQUESTS),
+    INVOICE_NOT_EXISTED(1016, "error.invoice.not.existed", HttpStatus.NOT_FOUND),
     ;
 
     int code;

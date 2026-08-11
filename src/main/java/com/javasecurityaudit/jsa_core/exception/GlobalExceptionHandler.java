@@ -90,13 +90,14 @@ public class GlobalExceptionHandler {
                         HttpServletRequest request) {
 
                 ErrorCode errorCode = exception.getErrorCode();
+                String message = getMessage(errorCode.getMessageKey());
 
                 ApiErrorResponse errorResponse = ApiErrorResponse.builder()
                                 .timestamp(LocalDateTime.now())
                                 .status(errorCode.getStatusCode().value())
-                                .code(errorCode.getCode()) // Gắn mã code từ ErrorCode
+                                .code(errorCode.getCode())
                                 .error(errorCode.getStatusCode().getReasonPhrase())
-                                .message(getMessage(errorCode.getMessageKey()))
+                                .message(message)
                                 .path(request.getRequestURI())
                                 .build();
 
