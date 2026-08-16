@@ -29,7 +29,7 @@ public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
 
     @Bean
-    @ConditionalOnProperty(prefix = "spring", value = "datasource.driver-class-name", havingValue = "com.mysql.cj.jdbc.Driver")
+    @ConditionalOnProperty(prefix = "spring", value = "datasource.driver-class-name", havingValue = "org.postgresql.Driver")
     ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) { // 👈 Inject thêm RoleRepository
         log.info("Initializing application data...");
         return args -> {

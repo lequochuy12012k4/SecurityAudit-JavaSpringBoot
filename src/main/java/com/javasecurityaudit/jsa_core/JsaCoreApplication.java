@@ -8,5 +8,4 @@ public class JsaCoreApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(JsaCoreApplication.class, args);
 	}
-
 }
