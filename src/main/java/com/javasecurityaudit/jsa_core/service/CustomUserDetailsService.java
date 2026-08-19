@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.javasecurityaudit.jsa_core.entity.User;
-import com.javasecurityaudit.jsa_core.repository.UserRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;

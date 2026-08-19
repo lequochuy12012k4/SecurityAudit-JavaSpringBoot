@@ -6,7 +6,7 @@ import com.javasecurityaudit.jsa_core.dto.response.JwtResponse;
 import com.javasecurityaudit.jsa_core.entity.User;
 import com.javasecurityaudit.jsa_core.exception.AppException;
 import com.javasecurityaudit.jsa_core.exception.ErrorCode;
-import com.javasecurityaudit.jsa_core.repository.UserRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.UserRepository;
 import com.javasecurityaudit.jsa_core.service.AuthService;
 import com.javasecurityaudit.jsa_core.service.LoginAttemptService;
 import com.javasecurityaudit.jsa_core.service.RefreshTokenService;

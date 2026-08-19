@@ -3,6 +3,7 @@ package com.javasecurityaudit.jsa_core.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.javasecurityaudit.jsa_core.document.UserDocument;
 import com.javasecurityaudit.jsa_core.dto.request.AdminUpdateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.request.ChangePasswordRequest;
 import com.javasecurityaudit.jsa_core.dto.request.CreateUserRequest;
@@ -26,16 +28,19 @@ import com.javasecurityaudit.jsa_core.enums.RoleType;
 import com.javasecurityaudit.jsa_core.exception.AppException;
 import com.javasecurityaudit.jsa_core.exception.ErrorCode;
 import com.javasecurityaudit.jsa_core.mapper.UserMapper;
-import com.javasecurityaudit.jsa_core.repository.RoleRepository;
-import com.javasecurityaudit.jsa_core.repository.UserRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.RoleRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.UserRepository;
+import com.javasecurityaudit.jsa_core.repository.elasticsearch.UserElasticsearchRepository;
 import com.javasecurityaudit.jsa_core.service.UserService;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     UserRepository userRepository;
+    UserElasticsearchRepository userElasticsearchRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
@@ -65,6 +70,12 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
 
         user = userRepository.save(user);
+        try {
+            UserDocument userDocument = userMapper.toUserDocument(user);
+            userElasticsearchRepository.save(userDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
         return userMapper.toUserResponse(user);
     }
 
@@ -90,6 +101,12 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         User updatedUser = userRepository.save(user);
+        try {
+            UserDocument userDocument = userMapper.toUserDocument(user);
+            userElasticsearchRepository.save(userDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
         return userMapper.toUserResponse(updatedUser);
     }
 
@@ -106,6 +123,12 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+        try {
+            UserDocument userDocument = userMapper.toUserDocument(user);
+            userElasticsearchRepository.save(userDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -146,6 +169,12 @@ public class UserServiceImpl implements UserService {
         }
 
         User updatedUser = userRepository.save(user);
+        try {
+            UserDocument userDocument = userMapper.toUserDocument(user);
+            userElasticsearchRepository.save(userDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
         return userMapper.toUserResponse(updatedUser);
     }
 
@@ -162,6 +191,12 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.delete(user);
+        try {
+            UserDocument userDocument = userMapper.toUserDocument(user);
+            userElasticsearchRepository.delete(userDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -186,7 +221,13 @@ public class UserServiceImpl implements UserService {
         if (request.getAccountNonLocked() != null) {
             user.setAccountNonLocked(request.getAccountNonLocked());
         }
-
-        return userMapper.toUserResponse(userRepository.save(user));
+        user = userRepository.save(user);
+        try {
+            UserDocument userDocument = userMapper.toUserDocument(user);
+            userElasticsearchRepository.delete(userDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
+        return userMapper.toUserResponse(user);
     }
 }

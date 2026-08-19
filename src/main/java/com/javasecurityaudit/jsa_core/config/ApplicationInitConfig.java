@@ -7,13 +7,14 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.javasecurityaudit.jsa_core.entity.Role;
 import com.javasecurityaudit.jsa_core.entity.User;
 import com.javasecurityaudit.jsa_core.enums.RoleType;
-import com.javasecurityaudit.jsa_core.repository.RoleRepository;
-import com.javasecurityaudit.jsa_core.repository.UserRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.RoleRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.UserRepository;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
+@EnableJpaRepositories(basePackages="com.javasecurityaudit.jsa_core.repository.JPA")
 public class ApplicationInitConfig {
 
     PasswordEncoder passwordEncoder;

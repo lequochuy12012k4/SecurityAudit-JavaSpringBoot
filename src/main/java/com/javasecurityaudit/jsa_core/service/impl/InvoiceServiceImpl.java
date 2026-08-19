@@ -1,5 +1,6 @@
 package com.javasecurityaudit.jsa_core.service.impl;
 
+import com.javasecurityaudit.jsa_core.document.InvoiceDocument;
 import com.javasecurityaudit.jsa_core.dto.request.CreateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.response.InvoiceResponse;
@@ -7,11 +8,14 @@ import com.javasecurityaudit.jsa_core.entity.Invoice;
 import com.javasecurityaudit.jsa_core.exception.AppException;
 import com.javasecurityaudit.jsa_core.exception.ErrorCode;
 import com.javasecurityaudit.jsa_core.mapper.InvoiceMapper;
-import com.javasecurityaudit.jsa_core.repository.InvoiceRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.InvoiceRepository;
+import com.javasecurityaudit.jsa_core.repository.elasticsearch.InvoiceElasticsearchRepository;
 import com.javasecurityaudit.jsa_core.service.InvoiceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -23,9 +27,11 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class InvoiceServiceImpl implements InvoiceService {
 
     InvoiceRepository invoiceRepository;
+    InvoiceElasticsearchRepository invoiceElasticsearchRepository;
     StringRedisTemplate redisTemplate;
     InvoiceMapper invoiceMapper;
 
@@ -80,6 +86,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             Invoice saved = invoiceRepository.save(invoice);
             redisTemplate.delete(attemptKey);
+            try {
+                InvoiceDocument invoiceDocument = invoiceMapper.toInvoiceDocument(saved);
+                invoiceElasticsearchRepository.save(invoiceDocument);
+            } catch (Exception e) {
+                log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+            }
             return invoiceMapper.toInvoiceResponse(saved);
         } catch (DataIntegrityViolationException ex) {
             throw new AppException(ErrorCode.INVOICE_ALREADY_EXISTS);
@@ -109,6 +121,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoice.setDescription(request.getDescription());
 
         Invoice updated = invoiceRepository.save(invoice);
+        try {
+            InvoiceDocument invoiceDocument = invoiceMapper.toInvoiceDocument(updated);
+            invoiceElasticsearchRepository.save(invoiceDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
         return invoiceMapper.toInvoiceResponse(updated);
     }
 
@@ -118,6 +136,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new AppException(ErrorCode.INVOICE_NOT_EXISTED));
         invoiceRepository.delete(invoice);
+        try {
+            InvoiceDocument invoiceDocument = invoiceMapper.toInvoiceDocument(invoice);
+            invoiceElasticsearchRepository.delete(invoiceDocument);
+        } catch (Exception e) {
+            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
+        }
     }
 
     private String buildLockKey(String invoiceCode) {

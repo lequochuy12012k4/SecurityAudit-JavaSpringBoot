@@ -13,7 +13,10 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
+  elasticsearch:
+    ris: http://localhost:9200
+    repositories:
+      enabled: true
   # Cấu hình JPA & Hibernate
   jpa:
     hibernate:
@@ -32,6 +35,10 @@ spring:
       port: ${DATA_REDIS_PORT}
       password: ${DATA_REDIS_PASSWORD}
       timeout: 3000ms
+    elasticsearch:
+      repositories:
+        # Tắt tự động khởi tạo index khi khởi chạy bean
+        create-indices: false
 
 # Cấu hình Custom Properties cho Security JWT & Audit Stream
 jwt:

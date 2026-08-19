@@ -1,5 +1,6 @@
 package com.javasecurityaudit.jsa_core.mapper;
 
+import com.javasecurityaudit.jsa_core.document.InvoiceDocument;
 import com.javasecurityaudit.jsa_core.dto.request.CreateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.response.InvoiceResponse;
 import com.javasecurityaudit.jsa_core.entity.Invoice;
@@ -15,6 +16,6 @@ public interface InvoiceMapper {
     @Mapping(target = "dueDate", ignore = true)
     @Mapping(target = "version", ignore = true)
     Invoice toInvoice(CreateInvoiceRequest request);
-
+    InvoiceDocument toInvoiceDocument(Invoice invoiceDocument);
     InvoiceResponse toInvoiceResponse(Invoice invoice);
 }

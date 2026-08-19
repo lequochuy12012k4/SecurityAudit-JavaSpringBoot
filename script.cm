@@ -1,0 +1,1 @@
+su -s /bin/bash elasticsearch -c "/usr/share/elasticsearch/bin/elasticsearch"

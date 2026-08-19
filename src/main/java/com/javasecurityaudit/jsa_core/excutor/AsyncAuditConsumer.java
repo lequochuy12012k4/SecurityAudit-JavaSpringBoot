@@ -2,7 +2,7 @@ package com.javasecurityaudit.jsa_core.excutor;
 
 import com.javasecurityaudit.jsa_core.entity.UserActivityLog;
 import com.javasecurityaudit.jsa_core.enums.AuditAction;
-import com.javasecurityaudit.jsa_core.repository.UserActivityLogRepository;
+import com.javasecurityaudit.jsa_core.repository.JPA.UserActivityLogRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

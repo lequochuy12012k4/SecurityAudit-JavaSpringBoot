@@ -1,4 +1,4 @@
-package com.javasecurityaudit.jsa_core.repository;
+package com.javasecurityaudit.jsa_core.repository.JPA;
 
 import java.util.Optional;
 

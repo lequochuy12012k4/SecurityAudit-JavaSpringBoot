@@ -1,5 +1,6 @@
 package com.javasecurityaudit.jsa_core.mapper;
 
+import com.javasecurityaudit.jsa_core.document.UserDocument;
 import com.javasecurityaudit.jsa_core.dto.request.CreateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.response.UserResponse;
 import com.javasecurityaudit.jsa_core.entity.Role;
@@ -12,9 +13,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(
-    componentModel = "spring"
-)
+@Mapper(componentModel = "spring")
 public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -22,6 +21,9 @@ public interface UserMapper {
     @Mapping(target = "enabled", constant = "true")
     @Mapping(target = "accountNonLocked", constant = "true")
     User toUser(CreateUserRequest request);
+
+    @Mapping(target = "roles", source = "roles", qualifiedByName = "mapRolesToStrings")
+    UserDocument toUserDocument(User user);
 
     @Mapping(target = "roles", source = "roles", qualifiedByName = "mapRolesToStrings")
     UserResponse toUserResponse(User user);
