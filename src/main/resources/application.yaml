@@ -7,17 +7,17 @@ spring:
   application:
     name: am_islms_core
 
-  # Cấu hình MySQL Database
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   elasticsearch:
-    ris: http://localhost:9200
+    rest:
+      uris: http://localhost:9200
     repositories:
       enabled: true
-  # Cấu hình JPA & Hibernate
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,7 +28,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         org.hibernate.envers.audit_table_suffix: _aud
 
-  # Cấu hình Redis Connection
   data:
     redis:
       host: ${DATA_REDIS_HOST}
@@ -37,10 +36,8 @@ spring:
       timeout: 3000ms
     elasticsearch:
       repositories:
-        # Tắt tự động khởi tạo index khi khởi chạy bean
         create-indices: false
 
-# Cấu hình Custom Properties cho Security JWT & Audit Stream
 jwt:
   secret-key: ${JWT_SECRET_KEY}
   access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS}
