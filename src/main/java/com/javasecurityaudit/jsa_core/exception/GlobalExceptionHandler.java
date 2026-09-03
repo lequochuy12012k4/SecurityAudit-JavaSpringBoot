@@ -31,10 +31,6 @@ public class GlobalExceptionHandler {
                 return messageSource.getMessage(messageKey, null, LocaleContextHolder.getLocale());
         }
 
-        private String getMessage(String messageKey, Object[] args) {
-                return messageSource.getMessage(messageKey, args, LocaleContextHolder.getLocale());
-        }
-
         @ExceptionHandler(value = MethodArgumentNotValidException.class)
         public ResponseEntity<ApiErrorResponse> handlingValidation(
                         MethodArgumentNotValidException exception,

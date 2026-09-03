@@ -1,4 +1,4 @@
-version: '3.8'
+version: '5.5.0'
 
 services:
   postgres:
@@ -35,7 +35,17 @@ services:
       - "9300:9300"
     volumes:
       - es_data:/usr/share/elasticsearch/data
-
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.5.3
+    container_name: dev-logstash
+    environment:
+      - "LS_JAVA_OPTS=-Xms1g -Xmx1g"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./logstash/drivers:/usr/share/logstash/custom_drivers
+    depends_on:
+      - postgres
+      - elasticsearch
 volumes:
   postgres_data:
   redis_data:

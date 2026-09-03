@@ -5,8 +5,6 @@ import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckNumericP
 import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckSpecialPasswordConstraint;
 import com.javasecurityaudit.jsa_core.config.annotation.constraint.CheckUpperPasswordConstraint;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
