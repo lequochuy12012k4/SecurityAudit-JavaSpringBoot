@@ -102,9 +102,10 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(username);
 
-        refreshTokenService.revokeRefreshToken(refreshToken);
         long refreshExpiryMs = jwtTokenProvider.getRefreshExpirationMs();
         refreshTokenService.saveRefreshToken(newRefreshToken, username, refreshExpiryMs);
+        // refreshTokenService.revokeRefreshToken(refreshToken);
+        refreshTokenService.deleteRefreshToken(refreshToken);
 
         return JwtResponse.builder()
                 .accessToken(newAccessToken)
@@ -120,7 +121,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (refreshToken != null && !refreshToken.isBlank()) {
-            refreshTokenService.revokeRefreshToken(refreshToken);
+            // refreshTokenService.revokeRefreshToken(refreshToken);
+            refreshTokenService.deleteRefreshToken(refreshToken);
         }
     }
 }

@@ -50,6 +50,17 @@ public class RefreshTokenRedisServiceImpl implements RefreshTokenService {
     }
 
     @Override
+    public void deleteRefreshToken(String token) {
+        String key = REFRESH_TOKEN_PREFIX + token;
+        String username = redisTemplate.opsForValue().get(key);
+
+        redisTemplate.delete(key);
+        if (username != null && !username.startsWith("REVOKED:")) {
+            redisTemplate.opsForSet().remove(USER_REFRESH_TOKENS_PREFIX + username, token);
+        }
+    }
+
+    @Override
     public boolean isRevoked(String token) {
         String key = REFRESH_TOKEN_PREFIX + token;
         String value = redisTemplate.opsForValue().get(key);

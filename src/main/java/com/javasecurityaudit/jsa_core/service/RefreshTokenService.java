@@ -5,6 +5,8 @@ public interface RefreshTokenService {
 
     void revokeRefreshToken(String token);
 
+    void deleteRefreshToken(String token);
+
     boolean isRevoked(String token);
 
     void deleteByUserUsername(String username);
