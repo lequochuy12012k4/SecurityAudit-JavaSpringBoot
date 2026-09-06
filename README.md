@@ -109,7 +109,7 @@ curl "http://localhost:8080/api/v1/auth/login?lang=vi"
 - `GET /javasecurityaudit/api/v1/users/search?keyword=nguyen&page=0&size=20` - Admin tìm người dùng theo username, email hoặc họ tên; hỗ trợ tiếng Việt có dấu/không dấu và trả về metadata phân trang.
 - `GET /javasecurityaudit/api/v1/invoices/search?keyword=khach hang&page=0&size=20` - User/Admin tìm hóa đơn theo mã, khách hàng, email, số điện thoại hoặc mô tả; hỗ trợ metadata phân trang.
 
-`page` bắt đầu từ `0`, `size` mặc định là `20` và được giới hạn tối đa `100`. Response có dạng `content`, `page`, `size`, `totalElements` và `totalPages`.
+`page` bắt đầu từ `0`, `size` mặc định là `20` và được giới hạn tối đa `100`. Response có dạng `content`, `page`, `size`, `totalElements` và `totalPages`.  `totalElements` có luôn luôn = 10000 do giới hạn elasticsearch có 10000
 
 Các index `users` và `invoices` được tạo với analyzer `vi_analyzer` (lowercase + asciifolding). Nếu index đã tồn tại trước khi cập nhật mapping, cần xóa/tạo lại index hoặc reindex dữ liệu để mapping mới có hiệu lực.
 
