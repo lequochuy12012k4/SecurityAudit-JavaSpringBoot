@@ -43,6 +43,7 @@ services:
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
       - ./logstash/drivers:/usr/share/logstash/custom_drivers
+      - logstash_data:/usr/share/logstash/data
     depends_on:
       - postgres
       - elasticsearch
@@ -50,3 +51,4 @@ volumes:
   postgres_data:
   redis_data:
   es_data:
+  logstash_data:

@@ -3,6 +3,7 @@ package com.javasecurityaudit.jsa_core.controller;
 import com.javasecurityaudit.jsa_core.base.response.BaseResponse;
 import com.javasecurityaudit.jsa_core.config.annotation.LogActivity;
 import com.javasecurityaudit.jsa_core.dto.request.*;
+import com.javasecurityaudit.jsa_core.dto.response.PageResponse;
 import com.javasecurityaudit.jsa_core.dto.response.UserResponse;
 import com.javasecurityaudit.jsa_core.enums.AuditAction;
 import com.javasecurityaudit.jsa_core.service.UserService;
@@ -94,5 +95,14 @@ public class UserController {
             @RequestBody UpdateUserStatusRequest request) {
         return BaseResponse.success(getMessage("success.status.updated"),
                 userService.updateUserStatus(userId, request));
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    public BaseResponse<PageResponse<UserResponse>> searchUsers(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return BaseResponse.success(userService.search(keyword, Math.max(page, 0), Math.min(Math.max(size, 1), 100)));
     }
 }

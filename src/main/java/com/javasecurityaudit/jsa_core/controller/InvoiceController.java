@@ -5,6 +5,7 @@ import com.javasecurityaudit.jsa_core.config.annotation.LogActivity;
 import com.javasecurityaudit.jsa_core.dto.request.CreateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.response.InvoiceResponse;
+import com.javasecurityaudit.jsa_core.dto.response.PageResponse;
 import com.javasecurityaudit.jsa_core.enums.AuditAction;
 import com.javasecurityaudit.jsa_core.service.InvoiceService;
 import jakarta.validation.Valid;
@@ -13,6 +14,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/invoices")
@@ -55,5 +58,13 @@ public class InvoiceController {
     public BaseResponse<String> deleteInvoice(@PathVariable String invoiceId) {
         invoiceService.deleteInvoice(invoiceId);
         return BaseResponse.success(getMessage("success.invoice.deleted"));
+    }
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public BaseResponse<PageResponse<InvoiceResponse>> searchInvoices(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return BaseResponse.success(invoiceService.search(keyword, Math.max(page, 0), Math.min(Math.max(size, 1), 100)));
     }
 }

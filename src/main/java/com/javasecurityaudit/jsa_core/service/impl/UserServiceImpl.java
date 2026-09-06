@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import com.javasecurityaudit.jsa_core.dto.request.ChangePasswordRequest;
 import com.javasecurityaudit.jsa_core.dto.request.CreateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateMyInfoRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateUserStatusRequest;
+import com.javasecurityaudit.jsa_core.dto.response.PageResponse;
 import com.javasecurityaudit.jsa_core.dto.response.UserResponse;
 import com.javasecurityaudit.jsa_core.entity.Role;
 import com.javasecurityaudit.jsa_core.entity.User;
@@ -32,6 +35,8 @@ import com.javasecurityaudit.jsa_core.repository.JPA.RoleRepository;
 import com.javasecurityaudit.jsa_core.repository.JPA.UserRepository;
 import com.javasecurityaudit.jsa_core.repository.elasticsearch.UserElasticsearchRepository;
 import com.javasecurityaudit.jsa_core.service.UserService;
+import java.util.Map;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -193,7 +198,7 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
         try {
             UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.delete(userDocument);
+            userElasticsearchRepository.save(userDocument);
         } catch (Exception e) {
             log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
         }
@@ -224,10 +229,38 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
         try {
             UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.delete(userDocument);
+            userElasticsearchRepository.save(userDocument);
         } catch (Exception e) {
             log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
         }
         return userMapper.toUserResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+        public PageResponse<UserResponse> search(String keyword, int page, int size) {
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        if (normalizedKeyword.isBlank()) {
+            return PageResponse.<UserResponse>builder()
+                .content(List.of())
+                .page(page)
+                .size(size)
+                .totalElements(0)
+                .totalPages(0)
+                .build();
+        }
+        Page<UserDocument> searchPage = userElasticsearchRepository.search(normalizedKeyword, PageRequest.of(page, size));
+        List<String> ids = searchPage.getContent().stream().map(UserDocument::getId).toList();
+        Map<String, User> usersById = userRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+        List<UserResponse> content = ids.stream().map(usersById::get).filter(user -> user != null)
+            .map(userMapper::toUserResponse).toList();
+        return PageResponse.<UserResponse>builder()
+            .content(content)
+            .page(page)
+            .size(size)
+            .totalElements(searchPage.getTotalElements())
+            .totalPages(searchPage.getTotalPages())
+            .build();
     }
 }

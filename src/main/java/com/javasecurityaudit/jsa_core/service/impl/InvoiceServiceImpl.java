@@ -4,7 +4,12 @@ import com.javasecurityaudit.jsa_core.document.InvoiceDocument;
 import com.javasecurityaudit.jsa_core.dto.request.CreateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.response.InvoiceResponse;
+import com.javasecurityaudit.jsa_core.dto.response.PageResponse;
 import com.javasecurityaudit.jsa_core.entity.Invoice;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import com.javasecurityaudit.jsa_core.exception.AppException;
 import com.javasecurityaudit.jsa_core.exception.ErrorCode;
 import com.javasecurityaudit.jsa_core.mapper.InvoiceMapper;
@@ -17,6 +22,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -154,6 +161,34 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private String buildBlockKey(String invoiceCode) {
         return INVOICE_CREATE_BLOCK_PREFIX + invoiceCode;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+        public PageResponse<InvoiceResponse> search(String keyword, int page, int size) {
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        if (normalizedKeyword.isBlank()) {
+            return PageResponse.<InvoiceResponse>builder()
+                .content(List.of())
+                .page(page)
+                .size(size)
+                .totalElements(0)
+                .totalPages(0)
+                .build();
+        }
+        Page<InvoiceDocument> searchPage = invoiceElasticsearchRepository.search(normalizedKeyword, PageRequest.of(page, size));
+        List<String> ids = searchPage.getContent().stream().map(InvoiceDocument::getId).toList();
+        Map<String, Invoice> invoicesById = invoiceRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Invoice::getId, Function.identity()));
+        List<InvoiceResponse> content = ids.stream().map(invoicesById::get).filter(invoice -> invoice != null)
+            .map(invoiceMapper::toInvoiceResponse).toList();
+        return PageResponse.<InvoiceResponse>builder()
+            .content(content)
+            .page(page)
+            .size(size)
+            .totalElements(searchPage.getTotalElements())
+            .totalPages(searchPage.getTotalPages())
+            .build();
     }
 
 }
