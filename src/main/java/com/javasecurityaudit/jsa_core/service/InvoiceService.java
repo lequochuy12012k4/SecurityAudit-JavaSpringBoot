@@ -5,8 +5,6 @@ import com.javasecurityaudit.jsa_core.dto.request.UpdateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.response.InvoiceResponse;
 import com.javasecurityaudit.jsa_core.dto.response.PageResponse;
 
-import java.util.List;
-
 public interface InvoiceService {
     InvoiceResponse createInvoice(CreateInvoiceRequest request);
     InvoiceResponse getInvoice(String invoiceId);

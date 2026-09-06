@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import com.javasecurityaudit.jsa_core.document.InvoiceDocument;
 
 public interface InvoiceElasticsearchRepository extends ElasticsearchRepository<InvoiceDocument,String>{
-
 	@Query("{\"multi_match\":{\"query\":\"?0\",\"fields\":[\"invoiceCode^4\",\"customerName^3\",\"customerEmail^2\",\"customerPhone\",\"description\"],\"type\":\"best_fields\",\"fuzziness\":\"AUTO\"}}")
 	Page<InvoiceDocument> search(String keyword, Pageable pageable);
 }
