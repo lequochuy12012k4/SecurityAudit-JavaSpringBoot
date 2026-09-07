@@ -103,9 +103,10 @@ public class AuthServiceImpl implements AuthService {
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(username);
 
         long refreshExpiryMs = jwtTokenProvider.getRefreshExpirationMs();
-        refreshTokenService.saveRefreshToken(newRefreshToken, username, refreshExpiryMs);
-        // refreshTokenService.revokeRefreshToken(refreshToken);
-        refreshTokenService.deleteRefreshToken(refreshToken);
+        if (!refreshTokenService.rotateRefreshToken(
+                refreshToken, newRefreshToken, username, refreshExpiryMs)) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
 
         return JwtResponse.builder()
                 .accessToken(newAccessToken)

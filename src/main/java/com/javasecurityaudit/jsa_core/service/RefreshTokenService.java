@@ -3,6 +3,8 @@ package com.javasecurityaudit.jsa_core.service;
 public interface RefreshTokenService {
     void saveRefreshToken(String token, String username, long expiryMs);
 
+    boolean rotateRefreshToken(String oldToken, String newToken, String username, long expiryMs);
+
     void revokeRefreshToken(String token);
 
     void deleteRefreshToken(String token);

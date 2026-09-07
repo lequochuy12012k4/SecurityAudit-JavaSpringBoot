@@ -35,6 +35,18 @@ public class RefreshTokenRedisServiceImpl implements RefreshTokenService {
     }
 
     @Override
+    public boolean rotateRefreshToken(String oldToken, String newToken, String username, long expiryMs) {
+        saveRefreshToken(newToken, username, expiryMs);
+
+        boolean newTokenSaved = Boolean.TRUE.equals(
+                redisTemplate.hasKey(REFRESH_TOKEN_PREFIX + newToken));
+        if (newTokenSaved) {
+            deleteRefreshToken(oldToken);
+        }
+        return newTokenSaved;
+    }
+
+    @Override
     public void revokeRefreshToken(String token) {
         String key = REFRESH_TOKEN_PREFIX + token;
         String username = redisTemplate.opsForValue().get(key);
