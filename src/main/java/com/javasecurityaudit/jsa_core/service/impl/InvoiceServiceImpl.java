@@ -1,6 +1,11 @@
 package com.javasecurityaudit.jsa_core.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javasecurityaudit.jsa_core.document.InvoiceDocument;
+import com.javasecurityaudit.jsa_core.dto.event.DocumentSyncAction;
+import com.javasecurityaudit.jsa_core.dto.event.DocumentSyncEntityType;
+import com.javasecurityaudit.jsa_core.dto.event.DocumentSyncEvent;
 import com.javasecurityaudit.jsa_core.dto.request.CreateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.request.UpdateInvoiceRequest;
 import com.javasecurityaudit.jsa_core.dto.response.InvoiceResponse;
@@ -16,6 +21,7 @@ import com.javasecurityaudit.jsa_core.mapper.InvoiceMapper;
 import com.javasecurityaudit.jsa_core.repository.JPA.InvoiceRepository;
 import com.javasecurityaudit.jsa_core.repository.elasticsearch.InvoiceElasticsearchRepository;
 import com.javasecurityaudit.jsa_core.service.InvoiceService;
+import com.javasecurityaudit.jsa_core.service.KafkaDocumentSyncProducer;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -41,6 +47,8 @@ public class InvoiceServiceImpl implements InvoiceService {
     InvoiceElasticsearchRepository invoiceElasticsearchRepository;
     StringRedisTemplate redisTemplate;
     InvoiceMapper invoiceMapper;
+    KafkaDocumentSyncProducer kafkaDocumentSyncProducer;
+    ObjectMapper objectMapper;
 
     private static final String INVOICE_CREATE_LOCK_PREFIX = "invoice:create:lock:";
     private static final String INVOICE_CREATE_ATTEMPT_PREFIX = "invoice:create:attempts:";
@@ -93,12 +101,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             Invoice saved = invoiceRepository.save(invoice);
             redisTemplate.delete(attemptKey);
-            try {
-                InvoiceDocument invoiceDocument = invoiceMapper.toInvoiceDocument(saved);
-                invoiceElasticsearchRepository.save(invoiceDocument);
-            } catch (Exception e) {
-                log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-            }
+            publishInvoiceEvent(saved, DocumentSyncAction.SAVE);
             return invoiceMapper.toInvoiceResponse(saved);
         } catch (DataIntegrityViolationException ex) {
             throw new AppException(ErrorCode.INVOICE_ALREADY_EXISTS);
@@ -128,12 +131,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoice.setDescription(request.getDescription());
 
         Invoice updated = invoiceRepository.save(invoice);
-        try {
-            InvoiceDocument invoiceDocument = invoiceMapper.toInvoiceDocument(updated);
-            invoiceElasticsearchRepository.save(invoiceDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishInvoiceEvent(updated, DocumentSyncAction.SAVE);
         return invoiceMapper.toInvoiceResponse(updated);
     }
 
@@ -143,12 +141,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new AppException(ErrorCode.INVOICE_NOT_EXISTED));
         invoiceRepository.delete(invoice);
-        try {
-            InvoiceDocument invoiceDocument = invoiceMapper.toInvoiceDocument(invoice);
-            invoiceElasticsearchRepository.delete(invoiceDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishInvoiceEvent(invoice, DocumentSyncAction.DELETE);
     }
 
     private String buildLockKey(String invoiceCode) {
@@ -161,6 +154,28 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private String buildBlockKey(String invoiceCode) {
         return INVOICE_CREATE_BLOCK_PREFIX + invoiceCode;
+    }
+
+    private void publishInvoiceEvent(Invoice invoice, DocumentSyncAction action) {
+        try {
+            if (action == DocumentSyncAction.DELETE) {
+                kafkaDocumentSyncProducer.send(DocumentSyncEvent.builder()
+                        .entityType(DocumentSyncEntityType.INVOICE.name())
+                        .action(DocumentSyncAction.DELETE.name())
+                        .payload(invoice.getId())
+                        .build());
+                return;
+            }
+
+            InvoiceDocument invoiceDocument = invoiceMapper.toInvoiceDocument(invoice);
+            kafkaDocumentSyncProducer.send(DocumentSyncEvent.builder()
+                    .entityType(DocumentSyncEntityType.INVOICE.name())
+                    .action(DocumentSyncAction.SAVE.name())
+                    .payload(objectMapper.writeValueAsString(invoiceDocument))
+                    .build());
+        } catch (JsonProcessingException e) {
+            log.error("Lỗi serialize InvoiceDocument sang Kafka event: {}", e.getMessage(), e);
+        }
     }
 
     @Override

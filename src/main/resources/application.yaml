@@ -7,6 +7,19 @@ spring:
   application:
     name: am_islms_core
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:jsa-doc-sync-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.javasecurityaudit.jsa_core.dto.event
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -42,6 +55,12 @@ jwt:
   secret-key: ${JWT_SECRET_KEY}
   access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS}
   refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS}
+
+app:
+  kafka:
+    topic: ${KAFKA_TOPIC:document-sync-events}
+    partitions: ${KAFKA_PARTITIONS:3}
+    replication-factor: ${KAFKA_REPLICATION_FACTOR:3}
 
 audit:
   redis-stream-key: ${AUDIT_REDIS_STREAM_KEY}

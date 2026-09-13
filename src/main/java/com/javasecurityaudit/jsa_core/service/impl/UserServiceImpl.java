@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.javasecurityaudit.jsa_core.document.UserDocument;
+import com.javasecurityaudit.jsa_core.dto.event.DocumentSyncAction;
+import com.javasecurityaudit.jsa_core.dto.event.DocumentSyncEntityType;
+import com.javasecurityaudit.jsa_core.dto.event.DocumentSyncEvent;
 import com.javasecurityaudit.jsa_core.dto.request.AdminUpdateUserRequest;
 import com.javasecurityaudit.jsa_core.dto.request.ChangePasswordRequest;
 import com.javasecurityaudit.jsa_core.dto.request.CreateUserRequest;
@@ -34,6 +39,7 @@ import com.javasecurityaudit.jsa_core.mapper.UserMapper;
 import com.javasecurityaudit.jsa_core.repository.JPA.RoleRepository;
 import com.javasecurityaudit.jsa_core.repository.JPA.UserRepository;
 import com.javasecurityaudit.jsa_core.repository.elasticsearch.UserElasticsearchRepository;
+import com.javasecurityaudit.jsa_core.service.KafkaDocumentSyncProducer;
 import com.javasecurityaudit.jsa_core.service.UserService;
 import java.util.Map;
 import java.util.function.Function;
@@ -49,6 +55,8 @@ public class UserServiceImpl implements UserService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     UserMapper userMapper;
+    KafkaDocumentSyncProducer kafkaDocumentSyncProducer;
+    ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -75,12 +83,7 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
 
         user = userRepository.save(user);
-        try {
-            UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.save(userDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishUserEvent(user, DocumentSyncAction.SAVE);
         return userMapper.toUserResponse(user);
     }
 
@@ -106,12 +109,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         User updatedUser = userRepository.save(user);
-        try {
-            UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.save(userDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishUserEvent(user, DocumentSyncAction.SAVE);
         return userMapper.toUserResponse(updatedUser);
     }
 
@@ -128,12 +126,7 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        try {
-            UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.save(userDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishUserEvent(user, DocumentSyncAction.SAVE);
     }
 
     @Override
@@ -174,12 +167,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User updatedUser = userRepository.save(user);
-        try {
-            UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.save(userDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishUserEvent(user, DocumentSyncAction.SAVE);
         return userMapper.toUserResponse(updatedUser);
     }
 
@@ -195,12 +183,7 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.delete(user);
-        try {
-            UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.save(userDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishUserEvent(user, DocumentSyncAction.DELETE);
     }
 
     @Override
@@ -226,13 +209,30 @@ public class UserServiceImpl implements UserService {
             user.setAccountNonLocked(request.getAccountNonLocked());
         }
         user = userRepository.save(user);
-        try {
-            UserDocument userDocument = userMapper.toUserDocument(user);
-            userElasticsearchRepository.save(userDocument);
-        } catch (Exception e) {
-            log.error("Lỗi đồng bộ Elasticsearch: {}", e.getMessage());
-        }
+        publishUserEvent(user, DocumentSyncAction.SAVE);
         return userMapper.toUserResponse(user);
+    }
+
+    private void publishUserEvent(User user, DocumentSyncAction action) {
+        try {
+            if (action == DocumentSyncAction.DELETE) {
+                kafkaDocumentSyncProducer.send(DocumentSyncEvent.builder()
+                        .entityType(DocumentSyncEntityType.USER.name())
+                        .action(DocumentSyncAction.DELETE.name())
+                        .payload(user.getId())
+                        .build());
+                return;
+            }
+
+            UserDocument userDocument = userMapper.toUserDocument(user);
+            kafkaDocumentSyncProducer.send(DocumentSyncEvent.builder()
+                    .entityType(DocumentSyncEntityType.USER.name())
+                    .action(DocumentSyncAction.SAVE.name())
+                    .payload(objectMapper.writeValueAsString(userDocument))
+                    .build());
+        } catch (JsonProcessingException e) {
+            log.error("Lỗi serialize UserDocument sang Kafka event: {}", e.getMessage(), e);
+        }
     }
 
     @Override

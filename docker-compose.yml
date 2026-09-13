@@ -35,18 +35,6 @@ services:
       - "9300:9300"
     volumes:
       - es_data:/usr/share/elasticsearch/data
-  logstash:
-    image: docker.elastic.co/logstash/logstash:9.5.3
-    container_name: dev-logstash
-    environment:
-      - "LS_JAVA_OPTS=-Xms1g -Xmx1g"
-    volumes:
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-      - ./logstash/drivers:/usr/share/logstash/custom_drivers
-      - logstash_data:/usr/share/logstash/data
-    depends_on:
-      - postgres
-      - elasticsearch
   kafka:
     image: apache/kafka:latest
     container_name: dev-kafka
