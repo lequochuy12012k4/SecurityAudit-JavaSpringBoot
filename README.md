@@ -1,155 +1,252 @@
 # JSA Core
 
-A Java Spring Boot application for JWT-based authentication and authorization with audit logging.
+JSA Core là backend API của hệ thống quản lý người dùng, xác thực và kiểm toán truy cập (audit logging) được xây dựng bằng Java Spring Boot. Dự án tích hợp nhiều thành phần hệ thống hiện đại như JWT, Redis, Kafka, Elasticsearch và PostgreSQL để phục vụ các tính năng bảo mật, phân quyền và tìm kiếm dữ liệu hiệu quả.
 
-## Features
+## Tóm tắt dự án
 
-- User authentication (login, logout, token refresh)
-- Role-based access control (ADMIN, USER)
-- Audit logging for security events
-- Redis-based token blacklisting for logout functionality
-- Refresh token mechanism
-- Password encoding with BCrypt
-- Input validation with Hibernate Validator
-- Global exception handling
-- **Internationalization (i18n) support** - English and Vietnamese
-- API documentation with Swagger/OpenAPI (if configured)
+Dự án này cung cấp các chức năng chính sau:
 
-## Project Structure
+- Xác thực người dùng bằng JWT (access token + refresh token)
+- Phân quyền theo vai trò: `USER`, `ADMIN`
+- Quản lý người dùng: tạo, cập nhật, xóa, lấy thông tin, đổi mật khẩu
+- Quản lý hóa đơn: tạo, xem, cập nhật, xóa, tìm kiếm
+- Chống brute-force login với cơ chế khóa tài khoản tạm thời
+- Audit log cho các hoạt động bảo mật và nghiệp vụ quan trọng
+- Blacklist token khi logout bằng Redis
+- Đồng bộ dữ liệu qua Kafka và Elasticsearch cho tìm kiếm nâng cao
+- Hỗ trợ đa ngôn ngữ tiếng Anh và tiếng Việt
 
-```
-src/main/java/com/javasecurityaudit/jsa_core/
-├── controller/          # REST controllers
-├── dto/                 # Data Transfer Objects
-├── entity/              # JPA entities
-├── enums/               # Enumerations
-├── exception/           # Custom exceptions and handlers
-├── executor/            # Async task executors
-├── filter/              # Servlet filters
-├── mapper/              # Object mappers
-├── repository/          # Spring Data repositories
-├── service/             # Business logic services
-├── util/                # Utility classes
-└── config/              # Configuration classes
-    ├── annotation/      # Custom annotations
-    ├── aspect/          # AOP aspects
-    ├── audit/           # Audit configuration
-    ├── redis/           # Redis configuration
-    ├── security/        # Security configuration
-    └── I18nConfig.java  # Internationalization configuration
-```
-
-### Resource Files
-
-```
-src/main/resources/
-├── application.properties          # Main configuration
-├── application-dev.properties      # Development profile
-├── application-prod.properties     # Production profile
-├── application-redis.properties    # Redis configuration
-├── messages.properties             # English messages (default)
-└── messages_vi.properties          # Vietnamese messages
-```
-
-## Getting Started
-
-### Prerequisites
+## Công nghệ sử dụng
 
 - Java 26
-- Maven 3.6+
-- MySQL or H2 database (for development)
-- Redis server (for token blacklisting)
+- Spring Boot 4.1.1
+- Spring Security
+- Spring Data JPA
+- PostgreSQL
+- Redis
+- Elasticsearch
+- Kafka
+- JWT (Nimbus JOSE + JWT)
+- Hibernate Validation
+- Lombok, MapStruct
+- Maven
 
-### Installation
+## Kiến trúc dự án
 
-1. Clone the repository
-2. Configure the database in `src/main/resources/application.properties` or `application.yaml`
-3. Configure Redis in `application-redis.properties` or similar
-4. Build the project:
-   ```bash
-   ./mvnw clean install
-   ```
-5. Run the application:
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-
-### Configuration
-
-The application uses Spring Boot's external configuration. Key configuration files:
-
-- `application.properties` - Main configuration
-- `application-dev.properties` - Development profile
-- `application-prod.properties` - Production profile
-- `application-redis.properties` - Redis configuration
-
-### Internationalization (i18n)
-
-The application supports multiple languages through Spring's `MessageSource`:
-
-- **Supported languages**: English (default) and Vietnamese
-- **Message files**: 
-  - `src/main/resources/messages.properties` - English (default)
-  - `src/main/resources/messages_vi.properties` - Vietnamese
-- **Locale resolution**: Via `Accept-Language` header or `?lang=` query parameter
-- **Usage**: Use `?lang=en` or `?lang=vi` in API requests, or set `Accept-Language` header
-
-Example:
-```bash
-# Get Vietnamese messages
-curl -H "Accept-Language: vi" http://localhost:8080/api/v1/auth/login
-
-# Or using query parameter
-curl "http://localhost:8080/api/v1/auth/login?lang=vi"
+```text
+src/main/java/com/javasecurityaudit/jsa_core/
+├── config/             # Cấu hình Spring, Security, Redis, Kafka, Elasticsearch, I18n
+│   ├── annotation/
+│   ├── aspect/
+│   ├── audit/
+│   ├── elasticsearch/
+│   ├── kafka/
+│   ├── redis/
+│   └── security/
+├── controller/         # REST API controllers
+├── dto/                # Request/Response DTOs
+├── entity/             # JPA entities
+├── enums/              # Enum dùng trong hệ thống
+├── exception/          # Exception và GlobalExceptionHandler
+├── executor/           # Async consumer cho audit event
+├── filter/             # JWT filter
+├── mapper/             # MapStruct mapper
+├── repository/         # Repository JPA và Elasticsearch
+├── service/            # Business logic
+├── util/               # Utility classes
+├── document/           # Elasticsearch document model
+├── base/               # Base response / audit trail
+├── JsaCoreApplication.java
+└── ...
 ```
 
-### API Endpoints
+## Cấu hình tài nguyên
 
-#### Elasticsearch search
-- `GET /javasecurityaudit/api/v1/users/search?keyword=nguyen&page=0&size=20` - Admin tìm người dùng theo username, email hoặc họ tên; hỗ trợ tiếng Việt có dấu/không dấu và trả về metadata phân trang.
-- `GET /javasecurityaudit/api/v1/invoices/search?keyword=khach hang&page=0&size=20` - User/Admin tìm hóa đơn theo mã, khách hàng, email, số điện thoại hoặc mô tả; hỗ trợ metadata phân trang.
-
-`page` bắt đầu từ `0`, `size` mặc định là `20` và được giới hạn tối đa `100`. Response có dạng `content`, `page`, `size`, `totalElements` và `totalPages`.  `totalElements` có luôn luôn = 10000 do giới hạn elasticsearch có 10000
-
-Các index `users` và `invoices` được tạo với analyzer `vi_analyzer` (lowercase + asciifolding). Nếu index đã tồn tại trước khi cập nhật mapping, cần xóa/tạo lại index hoặc reindex dữ liệu để mapping mới có hiệu lực.
-
-#### Authentication
-- `POST /api/v1/auth/login` - Authenticate user and return JWT tokens
-- `POST /api/v1/auth/logout` - Invalidate refresh token
-- `POST /api/v1/auth/refresh-token` - Refresh access token using refresh token
-
-### Security
-
-- Passwords are encoded using BCrypt
-- JWT tokens are signed with HMAC using a secret key
-- Access tokens have short expiration (configurable)
-- Refresh tokens have longer expiration and are stored in Redis
-- Logout invalidates the refresh token by storing it in a Redis blacklist
-
-### Audit Logging
-
-The application uses AOP to automatically log security-related events:
-- User login/logout
-- Token refresh
-- Access denied events
-- Account lock/unlock events
-
-Audit records are stored in the `user_activity_log` table.
-
-## Building for Production
-
-```bash
-./mvnw clean package -DskipTests
+```text
+src/main/resources/
+├── application.yaml                 # Cấu hình chính của ứng dụng
+├── application.properties          # File cấu hình bổ sung
+├── application-prod.yaml           # Cấu hình môi trường production
+├── messages.properties             # Message tiếng Anh
+├── messages_vi.properties         # Message tiếng Việt
+├── elasticsearch/
+│   ├── users-settings.json
+│   └── invoices-settings.json
+└── ...
 ```
 
-The resulting JAR file will be in the `target` directory.
+## Yêu cầu môi trường
 
-## Running Tests
+Trước khi chạy dự án, cần chuẩn bị các thành phần sau:
+
+- JDK 26
+- Maven 3.9+
+- PostgreSQL
+- Redis
+- Elasticsearch
+- Kafka
+
+## Khởi chạy dự án
+
+### 1. Clone repository
+
+```bash
+git clone https://github.com/lequochuy12012k4/SecurityAudit-JavaSpringBoot.git
+cd SecurityAudit-JavaSpringBoot
+```
+
+### 2. Cấu hình biến môi trường
+
+Sao chép file `.env.example` thành `.env` và điền các giá trị phù hợp:
+
+```bash
+cp .env.example .env
+```
+
+Ví dụ biến môi trường:
+
+```env
+SPRING_DATABASE_NAME=jsa_core
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/jsa_core
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
+DATA_REDIS_HOST=localhost
+DATA_REDIS_PORT=6379
+DATA_REDIS_PASSWORD=your_redis_password
+JWT_SECRET_KEY=your-secret-key
+JWT_ACCESS_EXPIRATION_MS=900000
+JWT_REFRESH_EXPIRATION_MS=604800000
+AUDIT_REDIS_STREAM_KEY=audit-stream
+AUDIT_REDIS_GROUP_NAME=jsa-audit-group
+LOGIN_ATTEMPT_MAX=5
+LOGIN_BLOCK_TIME_MINUTES=15
+LOGIN_ATTEMPT_WINDOW_MINUTES=30
+```
+
+### 3. Khởi tạo services phụ trợ
+
+Dự án có sẵn file `docker-compose.yml` để chạy các service cần thiết:
+
+```bash
+docker compose up -d
+```
+
+Các service bao gồm:
+
+- PostgreSQL
+- Redis
+- Elasticsearch
+- Kafka
+- Kafka UI
+
+### 4. Build và chạy ứng dụng
+
+```bash
+./mvnw clean install
+./mvnw spring-boot:run
+```
+
+Ứng dụng sẽ chạy với context-path:
+
+```text
+http://localhost:8080/javasecurityaudit
+```
+
+## Cấu hình ứng dụng
+
+Các cấu hình quan trọng được định nghĩa trong file:
+
+- `src/main/resources/application.yaml`
+- `src/main/resources/application-prod.yaml`
+- `.env` hoặc biến môi trường của hệ thống
+
+## API chính
+
+### 1) Xác thực và phân quyền
+
+- `POST /javasecurityaudit/api/v1/auth/login`
+  - Đăng nhập, trả về `accessToken` và `refreshToken`
+- `POST /javasecurityaudit/api/v1/auth/logout`
+  - Đăng xuất, vô hiệu hóa refresh token
+- `POST /javasecurityaudit/api/v1/auth/refresh-token`
+  - Làm mới access token
+
+### 2) Quản lý người dùng
+
+- `POST /javasecurityaudit/api/v1/users/create`
+  - Tạo người dùng mới
+- `GET /javasecurityaudit/api/v1/users/my-info`
+  - Xem thông tin cá nhân
+- `PUT /javasecurityaudit/api/v1/users/update-my-info`
+  - Cập nhật thông tin cá nhân
+- `PUT /javasecurityaudit/api/v1/users/change-password`
+  - Đổi mật khẩu
+- `GET /javasecurityaudit/api/v1/users`
+  - Admin xem danh sách người dùng
+- `GET /javasecurityaudit/api/v1/users/{userId}`
+  - Admin xem chi tiết người dùng
+- `PUT /javasecurityaudit/api/v1/users/{userId}`
+  - Admin cập nhật thông tin user
+- `DELETE /javasecurityaudit/api/v1/users/{userId}`
+  - Admin xóa user
+- `PATCH /javasecurityaudit/api/v1/users/{userId}/status`
+  - Admin thay đổi trạng thái tài khoản
+- `GET /javasecurityaudit/api/v1/users/search?keyword=...&page=0&size=20`
+  - Tìm kiếm người dùng trên Elasticsearch
+
+### 3) Quản lý hóa đơn
+
+- `POST /javasecurityaudit/api/v1/invoices/create`
+  - Tạo hóa đơn
+- `GET /javasecurityaudit/api/v1/invoices/{invoiceId}`
+  - Xem hóa đơn
+- `PUT /javasecurityaudit/api/v1/invoices/{invoiceId}`
+  - Cập nhật hóa đơn
+- `DELETE /javasecurityaudit/api/v1/invoices/{invoiceId}`
+  - Xóa hóa đơn
+- `GET /javasecurityaudit/api/v1/invoices/search?keyword=...&page=0&size=20`
+  - Tìm kiếm hóa đơn theo từ khóa
+
+## Bảo mật và audit log
+
+Dự án có các tính năng bảo mật quan trọng như:
+
+- Mã hóa mật khẩu bằng BCrypt
+- Xác thực bằng JWT
+- Refresh token được lưu và kiểm soát bằng Redis
+- Người dùng bị logout sẽ được lưu vào blacklist token
+- Giới hạn login attempts để chống brute-force
+- Lưu audit logs cho các hành động như đăng nhập, đăng xuất, refresh token, tạo/sửa/xóa user / invoice
+- Tất cả sự kiện quan trọng đều được ghi vào bảng `user_activity_log`
+
+## Hỗ trợ đa ngôn ngữ
+
+Dự án hỗ trợ tiếng Anh và tiếng Việt thông qua `MessageSource`:
+
+- `src/main/resources/messages.properties` : tiếng Anh
+- `src/main/resources/messages_vi.properties` : tiếng Việt
+
+Có thể chuyển đổi ngôn ngữ bằng header `Accept-Language` hoặc query param `?lang=en` / `?lang=vi`.
+
+## Chạy test
 
 ```bash
 ./mvnw test
 ```
 
+## Build production
+
+```bash
+./mvnw clean package -DskipTests
+```
+
+File JAR sẽ được sinh ra trong thư mục `target/`.
+
+## Ghi chú
+
+- Nếu cập nhật mapping Elasticsearch, cần xóa index cũ hoặc reindex dữ liệu để mapping mới được áp dụng.
+- Dự án đang dùng PostgreSQL cho dữ liệu nghiệp vụ, Redis cho token và audit stream, Elasticsearch cho tìm kiếm, Kafka cho đồng bộ dữ liệu.
+
 ## License
 
-This project is licensed under the MIT License.
+Dự án hiện đang được phân phối theo giấy phép MIT.
