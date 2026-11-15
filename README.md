@@ -103,25 +103,6 @@ Sao chép file `.env.example` thành `.env` và điền các giá trị phù h�
 cp .env.example .env
 ```
 
-Ví dụ biến môi trường:
-
-```env
-SPRING_DATABASE_NAME=jsa_core
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/jsa_core
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=postgres
-DATA_REDIS_HOST=localhost
-DATA_REDIS_PORT=6379
-DATA_REDIS_PASSWORD=your_redis_password
-JWT_SECRET_KEY=your-secret-key
-JWT_ACCESS_EXPIRATION_MS=900000
-JWT_REFRESH_EXPIRATION_MS=604800000
-AUDIT_REDIS_STREAM_KEY=audit-stream
-AUDIT_REDIS_GROUP_NAME=jsa-audit-group
-LOGIN_ATTEMPT_MAX=5
-LOGIN_BLOCK_TIME_MINUTES=15
-LOGIN_ATTEMPT_WINDOW_MINUTES=30
-```
 
 ### 3. Khởi tạo services phụ trợ
 
